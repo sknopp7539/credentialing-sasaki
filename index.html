@@ -7,13 +7,89 @@
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <nav class="navbar">
-        <div class="nav-brand">Credentialing System</div>
-        <div class="nav-links">
-            <button class="nav-btn active" onclick="showView('dashboard')">Dashboard</button>
-            <button class="nav-btn" onclick="showView('verify')">Verify Credential</button>
+    <!-- Login/Registration Screen -->
+    <div id="auth-screen" class="auth-screen">
+        <div class="auth-container">
+            <div class="auth-header">
+                <h1>Credentialing System</h1>
+                <p>Secure credential management and verification</p>
+            </div>
+
+            <!-- Login Form -->
+            <div id="login-form" class="auth-form active">
+                <h2>Login</h2>
+                <form onsubmit="login(event)">
+                    <div class="form-group">
+                        <label for="login-email">Email</label>
+                        <input type="email" id="login-email" required placeholder="Enter your email">
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <input type="password" id="login-password" required placeholder="Enter your password">
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Login</button>
+                </form>
+                <p class="auth-switch">
+                    Don't have an account? <a href="#" onclick="switchAuthForm('register')">Register here</a>
+                </p>
+            </div>
+
+            <!-- Registration Form -->
+            <div id="register-form" class="auth-form">
+                <h2>Register</h2>
+                <form onsubmit="register(event)">
+                    <div class="form-group">
+                        <label for="reg-name">Full Name</label>
+                        <input type="text" id="reg-name" required placeholder="Enter your full name">
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-email">Email</label>
+                        <input type="email" id="reg-email" required placeholder="Enter your email">
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-password">Password</label>
+                        <input type="password" id="reg-password" required placeholder="Create a password">
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-organization">Organization (Optional)</label>
+                        <input type="text" id="reg-organization" placeholder="Your organization name">
+                    </div>
+                    <div class="form-group">
+                        <label for="reg-role">Account Type *</label>
+                        <select id="reg-role" required>
+                            <option value="">Select your role</option>
+                            <option value="issuer">Issuer - I issue credentials to others</option>
+                            <option value="recipient">Recipient - I receive and manage credentials</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-block">Register</button>
+                </form>
+                <p class="auth-switch">
+                    Already have an account? <a href="#" onclick="switchAuthForm('login')">Login here</a>
+                </p>
+            </div>
         </div>
-    </nav>
+    </div>
+
+    <!-- Main Application (hidden until logged in) -->
+    <div id="main-app" class="main-app" style="display: none;">
+        <nav class="navbar">
+            <div class="nav-brand">Credentialing System</div>
+            <div class="nav-center">
+                <div class="nav-links" id="nav-links">
+                    <button class="nav-btn active" onclick="showView('dashboard')">Dashboard</button>
+                    <button class="nav-btn" onclick="showView('verify')">Verify Credential</button>
+                    <button class="nav-btn issuer-only" onclick="showView('recipients')" style="display: none;">My Recipients</button>
+                </div>
+            </div>
+            <div class="nav-user">
+                <div class="user-info">
+                    <span class="user-role" id="user-role-badge"></span>
+                    <span class="user-name" id="user-name"></span>
+                </div>
+                <button class="btn btn-secondary btn-small" onclick="logout()">Logout</button>
+            </div>
+        </nav>
 
     <main class="container">
         <!-- Dashboard View -->
@@ -44,7 +120,20 @@
                 <div id="verification-result" class="verification-result"></div>
             </div>
         </div>
+
+        <!-- Recipients View (Issuer Only) -->
+        <div id="recipients-view" class="view">
+            <div class="view-header">
+                <h1>My Recipients</h1>
+                <p style="color: #7f8c8d;">People who have received credentials from you</p>
+            </div>
+
+            <div class="recipients-grid" id="recipients-list">
+                <!-- Recipients will be dynamically loaded here -->
+            </div>
+        </div>
     </main>
+    </div>
 
     <!-- Add/Edit Modal -->
     <div id="credential-modal" class="modal">
@@ -78,8 +167,13 @@
                 </div>
 
                 <div class="form-group">
+                    <label for="cred-recipient-email">Recipient Email *</label>
+                    <input type="email" id="cred-recipient-email" required placeholder="recipient@example.com">
+                </div>
+
+                <div class="form-group" id="issuer-field">
                     <label for="cred-issuer">Issuing Organization *</label>
-                    <input type="text" id="cred-issuer" required>
+                    <input type="text" id="cred-issuer">
                 </div>
 
                 <div class="form-group">
