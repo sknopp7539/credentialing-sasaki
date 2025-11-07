@@ -1,1 +1,115 @@
-<!doctype html><meta charset="utf-8"><title>It works</title><h1>It works!</h1>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Credentialing System</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-brand">Credentialing System</div>
+        <div class="nav-links">
+            <button class="nav-btn active" onclick="showView('dashboard')">Dashboard</button>
+            <button class="nav-btn" onclick="showView('verify')">Verify Credential</button>
+        </div>
+    </nav>
+
+    <main class="container">
+        <!-- Dashboard View -->
+        <div id="dashboard-view" class="view active">
+            <div class="view-header">
+                <h1>Credential Management Dashboard</h1>
+                <button class="btn btn-primary" onclick="showAddModal()">+ Add Credential</button>
+            </div>
+
+            <div class="credentials-grid" id="credentials-list">
+                <!-- Credentials will be dynamically loaded here -->
+            </div>
+        </div>
+
+        <!-- Verify View -->
+        <div id="verify-view" class="view">
+            <div class="view-header">
+                <h1>Verify Credential</h1>
+            </div>
+
+            <div class="verify-container">
+                <div class="verify-input-section">
+                    <label for="credential-id">Enter Credential ID:</label>
+                    <input type="text" id="credential-id" placeholder="e.g., CRED-2024-001">
+                    <button class="btn btn-primary" onclick="verifyCredential()">Verify</button>
+                </div>
+
+                <div id="verification-result" class="verification-result"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add/Edit Modal -->
+    <div id="credential-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modal-title">Add Credential</h2>
+                <span class="close" onclick="closeModal()">&times;</span>
+            </div>
+            <form id="credential-form" onsubmit="saveCredential(event)">
+                <input type="hidden" id="edit-id">
+
+                <div class="form-group">
+                    <label for="cred-name">Credential Name *</label>
+                    <input type="text" id="cred-name" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="cred-type">Type *</label>
+                    <select id="cred-type" required>
+                        <option value="">Select Type</option>
+                        <option value="Certificate">Certificate</option>
+                        <option value="License">License</option>
+                        <option value="Badge">Badge</option>
+                        <option value="Certification">Certification</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="cred-recipient">Recipient Name *</label>
+                    <input type="text" id="cred-recipient" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="cred-issuer">Issuing Organization *</label>
+                    <input type="text" id="cred-issuer" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="cred-issue-date">Issue Date *</label>
+                    <input type="date" id="cred-issue-date" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="cred-expiry-date">Expiry Date</label>
+                    <input type="date" id="cred-expiry-date">
+                </div>
+
+                <div class="form-group">
+                    <label for="cred-status">Status *</label>
+                    <select id="cred-status" required>
+                        <option value="Active">Active</option>
+                        <option value="Expired">Expired</option>
+                        <option value="Revoked">Revoked</option>
+                        <option value="Pending">Pending</option>
+                    </select>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
