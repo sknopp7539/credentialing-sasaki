@@ -2874,7 +2874,33 @@ function renderPayers() {
         return;
     }
 
-    container.innerHTML = payers.map(payer => {
+    // Filter payers to only show those with contracts for current organization
+    const filteredPayers = currentOrganization ?
+        payers.filter(payer => {
+            const hasContracts = contracts.some(c =>
+                c.payerId === payer.id &&
+                c.status !== 'Archived' &&
+                c.organizationId === currentOrganization.id
+            );
+            return hasContracts;
+        }) :
+        payers;
+
+    console.log('   Total payers in system:', payers.length);
+    console.log('   Payers with contracts for current org:', filteredPayers.length);
+
+    if (filteredPayers.length === 0) {
+        container.innerHTML = `
+            <div class="coming-soon">
+                ${currentOrganization ?
+                    `No payer contracts found for ${currentOrganization.name}. Add contracts to see payers here.` :
+                    'No payers found. Add payers and contracts to get started.'}
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = filteredPayers.map(payer => {
         // Filter contracts by current organization AND payer
         const payerContracts = currentOrganization ?
             contracts.filter(c =>
@@ -2896,7 +2922,7 @@ function renderPayers() {
                 </div>
                 <div style="font-size: 0.875rem; color: #64748b; margin-bottom: 0.5rem;">
                     <div>Payer ID: <span style="font-weight: 500; color: #1e293b;">${payer.payerId}</span></div>
-                    <div>📄 ${payerContracts.length} Active Contract${payerContracts.length !== 1 ? 's' : ''}${currentOrganization ? ` for ${currentOrganization.name}` : ''}</div>
+                    <div>📄 ${payerContracts.length} Active Contract${payerContracts.length !== 1 ? 's' : ''}</div>
                 </div>
                 <div style="display: flex; gap: 0.5rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e2e8f0;">
                     <button class="btn btn-primary btn-small" onclick="event.stopPropagation(); editPayer('${payer.id}')">Edit</button>
