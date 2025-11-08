@@ -598,9 +598,15 @@
             </div>
             <form id="provider-form" onsubmit="saveProvider(event)">
                 <input type="hidden" id="provider-edit-id">
-                <div class="form-group">
-                    <label for="provider-name">Provider Name *</label>
-                    <input type="text" id="provider-name" required>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="form-group">
+                        <label for="provider-first-name">First Name <span style="color: #ef4444;">*</span></label>
+                        <input type="text" id="provider-first-name" required placeholder="e.g., Sarah">
+                    </div>
+                    <div class="form-group">
+                        <label for="provider-last-name">Last Name <span style="color: #ef4444;">*</span></label>
+                        <input type="text" id="provider-last-name" required placeholder="e.g., Johnson">
+                    </div>
                 </div>
                 <div class="form-group">
                     <label for="provider-npi">NPI Number *</label>

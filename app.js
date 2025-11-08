@@ -645,6 +645,8 @@ function loadData() {
             {
                 id: 'PROV-001',
                 organizationId: 'ORG-001',
+                firstName: 'Sarah',
+                lastName: 'Johnson',
                 name: 'Dr. Sarah Johnson',
                 specialty: 'Family Medicine',
                 npi: '1234567890',
@@ -691,6 +693,8 @@ function loadData() {
             {
                 id: 'PROV-002',
                 organizationId: 'ORG-001',
+                firstName: 'Michael',
+                lastName: 'Chen',
                 name: 'Dr. Michael Chen',
                 specialty: 'Cardiology',
                 npi: '9876543210',
@@ -766,6 +770,8 @@ function loadData() {
             {
                 id: 'PROV-003',
                 organizationId: 'ORG-002',
+                firstName: 'Emily',
+                lastName: 'Davis',
                 name: 'Dr. Emily Davis',
                 specialty: 'Pediatrics',
                 npi: '5555555555',
@@ -1694,19 +1700,27 @@ function saveProvider(event) {
     event.preventDefault();
 
     const id = document.getElementById('provider-edit-id').value;
+    const firstName = document.getElementById('provider-first-name').value;
+    const lastName = document.getElementById('provider-last-name').value;
+
     const providerData = {
         id: id || `PROV-${String(providers.length + 1).padStart(3, '0')}`,
-        name: document.getElementById('provider-name').value,
+        firstName: firstName,
+        lastName: lastName,
+        name: `${firstName} ${lastName}`, // Keep for backwards compatibility
         npi: document.getElementById('provider-npi').value,
         specialty: document.getElementById('provider-specialty').value,
         email: document.getElementById('provider-email').value,
         phone: document.getElementById('provider-phone').value,
-        status: document.getElementById('provider-status').value
+        status: document.getElementById('provider-status').value,
+        organizationId: currentOrganization ? currentOrganization.id : null
     };
 
     if (id) {
         const index = providers.findIndex(p => p.id === id);
         if (index !== -1) {
+            // Preserve existing organizationId if editing
+            providerData.organizationId = providers[index].organizationId || providerData.organizationId;
             providers[index] = providerData;
         }
     } else {
@@ -1724,7 +1738,18 @@ function editProvider(id) {
 
     document.getElementById('provider-modal-title').textContent = 'Edit Provider';
     document.getElementById('provider-edit-id').value = provider.id;
-    document.getElementById('provider-name').value = provider.name;
+
+    // Handle both old (name) and new (firstName/lastName) data formats
+    if (provider.firstName && provider.lastName) {
+        document.getElementById('provider-first-name').value = provider.firstName;
+        document.getElementById('provider-last-name').value = provider.lastName;
+    } else if (provider.name) {
+        // Split the old name format
+        const nameParts = provider.name.split(' ');
+        document.getElementById('provider-first-name').value = nameParts[0] || '';
+        document.getElementById('provider-last-name').value = nameParts.slice(1).join(' ') || '';
+    }
+
     document.getElementById('provider-npi').value = provider.npi;
     document.getElementById('provider-specialty').value = provider.specialty;
     document.getElementById('provider-email').value = provider.email;
