@@ -3135,14 +3135,22 @@ function renderLocations() {
     const container = document.getElementById('locations-list');
     if (!container) return;
 
-    // Filter locations to exclude archived ones
-    const activeLocations = locations.filter(l => l.status !== 'Archived');
+    console.log('📍 Rendering locations view...');
+    console.log('   Current Organization:', currentOrganization ? `${currentOrganization.name} (ID: ${currentOrganization.id})` : 'None');
+    console.log('   Total locations in system:', locations.length);
+
+    // Filter locations by current organization and exclude archived ones
+    const orgLocations = currentOrganization ?
+        locations.filter(l => l.organizationId === currentOrganization.id && l.status !== 'Archived') :
+        locations.filter(l => l.status !== 'Archived');
+
+    console.log('   Locations for current organization:', orgLocations.length);
 
     // Apply search filter
     const searchTerm = document.getElementById('location-search')?.value.toLowerCase() || '';
-    let filteredLocations = activeLocations;
+    let filteredLocations = orgLocations;
     if (searchTerm) {
-        filteredLocations = activeLocations.filter(location =>
+        filteredLocations = orgLocations.filter(location =>
             location.name.toLowerCase().includes(searchTerm) ||
             location.city.toLowerCase().includes(searchTerm) ||
             location.type.toLowerCase().includes(searchTerm) ||
@@ -3160,7 +3168,9 @@ function renderLocations() {
         container.innerHTML = `
             <tr>
                 <td colspan="7" style="text-align: center; padding: 3rem; color: #94a3b8;">
-                    ${searchTerm ? 'No locations found matching your search.' : 'No locations found. Click "Add Location" to get started.'}
+                    ${searchTerm ? 'No locations found matching your search.' :
+                    currentOrganization ? `No locations found for ${currentOrganization.name}. Click "Add Location" to get started.` :
+                    'No locations found. Click "Add Location" to get started.'}
                 </td>
             </tr>
         `;
@@ -3231,9 +3241,16 @@ function closeLocationModal() {
 function saveLocation(event) {
     event.preventDefault();
 
+    console.log('📍 ========== SAVE LOCATION CALLED ==========');
+    console.log('📍 Current Organization at time of save:', currentOrganization ? `${currentOrganization.name} (ID: ${currentOrganization.id})` : 'NULL - THIS IS A PROBLEM!');
+
     const id = document.getElementById('location-edit-id').value;
+    const assignedOrgId = currentOrganization ? currentOrganization.id : null;
+    console.log('📍 Assigning organizationId:', assignedOrgId);
+
     const locationData = {
         id: id || `LOC-${String(locations.length + 1).padStart(3, '0')}`,
+        organizationId: assignedOrgId,
         name: document.getElementById('location-name').value,
         type: document.getElementById('location-type').value,
         npi: document.getElementById('location-npi').value,
@@ -3252,11 +3269,20 @@ function saveLocation(event) {
     if (id) {
         const index = locations.findIndex(l => l.id === id);
         if (index !== -1) {
+            // Preserve organizationId when editing
+            const existingLocation = locations[index];
+            locationData.organizationId = existingLocation.organizationId || locationData.organizationId;
             locations[index] = locationData;
+            console.log('📍 Updated existing location at index', index);
         }
     } else {
         locations.push(locationData);
+        console.log('📍 Added new location to array');
     }
+
+    console.log('📍 Location data:', locationData);
+    console.log('📍 Total locations in system:', locations.length);
+    console.log('📍 ========================================');
 
     saveLocations();
     renderLocations();

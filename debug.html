@@ -72,6 +72,7 @@
             <button class="btn" onclick="fixProviderOrganizations()">Fix Provider Organization IDs</button>
             <button class="btn" onclick="fixContractOrganizations()">Fix Contract Organization IDs</button>
             <button class="btn" onclick="fixPayerOrganizations()">Fix Payer Organization IDs</button>
+            <button class="btn" onclick="fixLocationOrganizations()">Fix Location Organization IDs</button>
             <button class="btn btn-danger" onclick="clearProviders()">Clear All Providers</button>
             <button class="btn" onclick="window.location.href='index.html'">Back to App</button>
         </div>
@@ -274,6 +275,47 @@
                 }, 500);
             } else {
                 alert('No payers needed fixing. All payers already have valid organization IDs.');
+            }
+        }
+
+        function fixLocationOrganizations() {
+            const currentOrgData = localStorage.getItem('pvCurrentOrganization');
+            if (!currentOrgData) {
+                alert('No current organization found. Please select an organization in the main app first.');
+                return;
+            }
+
+            const currentOrg = JSON.parse(currentOrgData);
+            const locationsData = localStorage.getItem('pvLocations');
+
+            if (!locationsData) {
+                alert('No locations found to fix.');
+                return;
+            }
+
+            const locations = JSON.parse(locationsData);
+            let fixedCount = 0;
+            const fixedLocations = [];
+
+            locations.forEach(location => {
+                if (!location.organizationId || location.organizationId === 'null' || location.organizationId === null) {
+                    location.organizationId = currentOrg.id;
+                    fixedCount++;
+                    fixedLocations.push(location.name);
+                }
+            });
+
+            if (fixedCount > 0) {
+                localStorage.setItem('pvLocations', JSON.stringify(locations));
+                const message = `✓ Fixed ${fixedCount} location(s) and assigned them to "${currentOrg.name}":\n${fixedLocations.join(', ')}`;
+                document.getElementById('fix-message').style.display = 'block';
+                document.getElementById('fix-message').innerHTML = '<strong>Success!</strong> ' + message.replace(/\n/g, '<br>');
+                loadData();
+                setTimeout(() => {
+                    alert('Locations fixed! Go back to the main app and refresh the page (Ctrl+Shift+R) to see the changes.');
+                }, 500);
+            } else {
+                alert('No locations needed fixing. All locations already have valid organization IDs.');
             }
         }
 
