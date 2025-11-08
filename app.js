@@ -6,10 +6,14 @@ let enrollments = [];
 let locations = [];
 let contracts = [];
 let emailNotifications = [];
+let organizations = [];
+let currentOrganization = null;
 let currentUser = null;
 let selectedProvider = null;
 let selectedPayer = null;
 let contractIdentifiers = [];
+let authorizedOfficials = [];
+let dbaNames = [];
 let refreshTimer = 20;
 let refreshInterval = null;
 let currentNotificationFilter = 'all';
@@ -17,6 +21,7 @@ let currentNotificationFilter = 'all';
 // Initialize app
 document.addEventListener('DOMContentLoaded', () => {
     checkAuth();
+    loadOrganizations();
     loadData();
     loadContracts();
     loadEmailNotifications();
@@ -107,7 +112,526 @@ function showView(viewName) {
     } else if (viewName === 'email-notifications') {
         renderEmailNotifications();
         startRefreshTimer();
+    } else if (viewName === 'organizations') {
+        renderOrganizations();
     }
+}
+
+// ===== ORGANIZATIONS =====
+function loadOrganizations() {
+    const storedOrganizations = localStorage.getItem('pvOrganizations');
+    if (storedOrganizations) {
+        organizations = JSON.parse(storedOrganizations);
+    } else {
+        organizations = [
+            {
+                id: 'ORG-001',
+                name: 'Metropolitan Healthcare Group',
+                dba: ['City Medical Center', 'Metro Health Services'],
+                corporateAddress: {
+                    street: '1500 Healthcare Blvd',
+                    city: 'New York',
+                    state: 'NY',
+                    zipCode: '10001'
+                },
+                mailingAddress: {
+                    street: '1500 Healthcare Blvd',
+                    city: 'New York',
+                    state: 'NY',
+                    zipCode: '10001',
+                    sameAsCorporate: true
+                },
+                tin: '12-3456789',
+                authorizedOfficials: [
+                    {
+                        id: 1,
+                        name: 'Robert Williams',
+                        title: 'Chief Executive Officer',
+                        email: 'robert.williams@metrohealthcare.com',
+                        phone: '(555) 100-0001'
+                    },
+                    {
+                        id: 2,
+                        name: 'Sarah Martinez',
+                        title: 'Chief Medical Officer',
+                        email: 'sarah.martinez@metrohealthcare.com',
+                        phone: '(555) 100-0002'
+                    }
+                ],
+                primaryContact: {
+                    name: 'Jennifer Lee',
+                    title: 'Director of Operations',
+                    email: 'jennifer.lee@metrohealthcare.com',
+                    phone: '(555) 100-0010',
+                    fax: '(555) 100-0011'
+                },
+                website: 'https://www.metrohealthcare.com',
+                status: 'Active',
+                createdAt: '2024-01-15'
+            },
+            {
+                id: 'ORG-002',
+                name: 'Coastal Medical Associates',
+                dba: ['Coastal Health Clinic'],
+                corporateAddress: {
+                    street: '2400 Ocean Drive',
+                    city: 'Los Angeles',
+                    state: 'CA',
+                    zipCode: '90001'
+                },
+                mailingAddress: {
+                    street: 'PO Box 5500',
+                    city: 'Los Angeles',
+                    state: 'CA',
+                    zipCode: '90002',
+                    sameAsCorporate: false
+                },
+                tin: '98-7654321',
+                authorizedOfficials: [
+                    {
+                        id: 1,
+                        name: 'David Chen',
+                        title: 'President',
+                        email: 'david.chen@coastalmed.com',
+                        phone: '(555) 200-0001'
+                    }
+                ],
+                primaryContact: {
+                    name: 'Maria Garcia',
+                    title: 'Office Manager',
+                    email: 'maria.garcia@coastalmed.com',
+                    phone: '(555) 200-0010',
+                    fax: '(555) 200-0011'
+                },
+                website: 'https://www.coastalmed.com',
+                status: 'Active',
+                createdAt: '2024-02-01'
+            }
+        ];
+        saveOrganizations();
+    }
+
+    // Set current organization if not set
+    const storedCurrentOrg = localStorage.getItem('pvCurrentOrganization');
+    if (storedCurrentOrg) {
+        currentOrganization = JSON.parse(storedCurrentOrg);
+    } else if (organizations.length > 0) {
+        currentOrganization = organizations[0];
+        localStorage.setItem('pvCurrentOrganization', JSON.stringify(currentOrganization));
+    }
+
+    updateOrganizationDisplay();
+}
+
+function saveOrganizations() {
+    localStorage.setItem('pvOrganizations', JSON.stringify(organizations));
+}
+
+function updateOrganizationDisplay() {
+    const orgNameElement = document.getElementById('current-org-name');
+    if (orgNameElement && currentOrganization) {
+        orgNameElement.textContent = currentOrganization.name;
+    }
+}
+
+function toggleOrgDropdown() {
+    const dropdown = document.getElementById('org-dropdown');
+    if (dropdown) {
+        // Populate dropdown with organizations
+        if (dropdown.style.display === 'none') {
+            dropdown.innerHTML = organizations.map(org => `
+                <div onclick="switchOrganization('${org.id}')"
+                     onmouseover="this.style.background='#f8fafc'"
+                     onmouseout="this.style.background='${currentOrganization && currentOrganization.id === org.id ? '#f1f5f9' : 'white'}'"
+                     style="padding: 0.75rem; cursor: pointer; border-bottom: 1px solid #e2e8f0; ${currentOrganization && currentOrganization.id === org.id ? 'background: #f1f5f9;' : 'background: white;'} transition: background 0.2s;">
+                    <div style="font-weight: 500; color: #1e293b; margin-bottom: 0.25rem;">
+                        ${org.name}
+                        ${currentOrganization && currentOrganization.id === org.id ? '<span style="margin-left: 0.5rem; padding: 0.125rem 0.5rem; font-size: 0.75rem; background: #06b6d4; color: white; border-radius: 9999px;">Current</span>' : ''}
+                    </div>
+                    <div style="font-size: 0.75rem; color: #64748b;">
+                        ${org.corporateAddress.city}, ${org.corporateAddress.state}
+                    </div>
+                </div>
+            `).join('');
+        }
+        dropdown.style.display = dropdown.style.display === 'none' ? 'block' : 'none';
+    }
+}
+
+function switchOrganization(orgId) {
+    const org = organizations.find(o => o.id === orgId);
+    if (org) {
+        currentOrganization = org;
+        localStorage.setItem('pvCurrentOrganization', JSON.stringify(currentOrganization));
+        updateOrganizationDisplay();
+
+        // Reload data for new organization
+        renderProviders();
+
+        // Close dropdown
+        const dropdown = document.getElementById('org-dropdown');
+        if (dropdown) {
+            dropdown.style.display = 'none';
+        }
+    }
+}
+
+function renderOrganizations() {
+    const container = document.getElementById('organizations-list');
+    if (!container) return;
+
+    if (organizations.length === 0) {
+        container.innerHTML = `
+            <div class="coming-soon">
+                No organizations found. Click "Add Organization" to get started.
+            </div>
+        `;
+        return;
+    }
+
+    container.innerHTML = organizations.map(org => `
+        <div class="provider-card" style="cursor: pointer;" onclick="viewOrganizationDetail('${org.id}')">
+            <div style="display: flex; align-items: start; justify-between; margin-bottom: 1rem;">
+                <div style="flex: 1;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; flex-wrap: wrap;">
+                        <h3 style="font-size: 1.125rem; font-weight: 600; margin: 0;">${org.name}</h3>
+                        <span class="status-badge status-${org.status.toLowerCase()}">${org.status}</span>
+                        ${currentOrganization && currentOrganization.id === org.id ? '<span style="padding: 0.25rem 0.5rem; font-size: 0.75rem; background: #06b6d4; color: white; border-radius: 9999px; font-weight: 500;">Current</span>' : ''}
+                    </div>
+                    ${org.dba && org.dba.length > 0 ? `
+                        <div style="font-size: 0.875rem; color: #64748b; margin-bottom: 0.5rem;">
+                            <strong>DBA:</strong> ${org.dba.join(', ')}
+                        </div>
+                    ` : ''}
+                </div>
+            </div>
+            <div style="font-size: 0.875rem; color: #64748b; margin-bottom: 0.75rem;">
+                <div style="margin-bottom: 0.25rem;">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: inline; margin-right: 0.25rem; vertical-align: text-bottom;">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    ${org.corporateAddress.street}, ${org.corporateAddress.city}, ${org.corporateAddress.state} ${org.corporateAddress.zipCode}
+                </div>
+                <div style="margin-bottom: 0.25rem;">
+                    <strong>TIN:</strong> ${org.tin}
+                </div>
+                <div style="margin-bottom: 0.25rem;">
+                    <strong>Authorized Officials:</strong> ${org.authorizedOfficials.length}
+                </div>
+                <div>
+                    <strong>Primary Contact:</strong> ${org.primaryContact.name}
+                </div>
+            </div>
+            <div style="display: flex; gap: 0.5rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e2e8f0;">
+                <button class="btn btn-primary btn-small" onclick="event.stopPropagation(); editOrganization('${org.id}')">Edit</button>
+                ${currentOrganization && currentOrganization.id !== org.id ? `
+                    <button class="btn btn-secondary btn-small" onclick="event.stopPropagation(); switchOrganization('${org.id}')">
+                        Switch To
+                    </button>
+                ` : ''}
+            </div>
+        </div>
+    `).join('');
+}
+
+function viewOrganizationDetail(orgId) {
+    alert('Organization detail view coming soon! For now, click Edit to modify the organization.');
+}
+
+function showOrganizationModal() {
+    document.getElementById('organization-modal-title').textContent = 'Add Organization';
+    document.getElementById('organization-form').reset();
+    document.getElementById('organization-edit-id').value = '';
+
+    // Reset arrays
+    dbaNames = [];
+    authorizedOfficials = [];
+
+    // Reset DBA list
+    document.getElementById('dba-list').innerHTML = '';
+
+    // Reset Officials list
+    document.getElementById('officials-list').innerHTML = '';
+
+    // Reset mailing address checkbox
+    document.getElementById('same-as-corporate').checked = true;
+    toggleMailingAddress();
+
+    document.getElementById('organization-modal').classList.add('active');
+}
+
+function closeOrganizationModal() {
+    document.getElementById('organization-modal').classList.remove('active');
+}
+
+function addDBA() {
+    const id = Date.now();
+    const dbaHtml = `
+        <div id="dba-${id}" style="display: flex; gap: 0.75rem; align-items: center; margin-bottom: 0.75rem;">
+            <input type="text" placeholder="Enter DBA name" class="dba-name" data-id="${id}" style="flex: 1;" />
+            <button type="button" onclick="removeDBA(${id})" class="btn-danger btn-small">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+    `;
+
+    document.getElementById('dba-list').insertAdjacentHTML('beforeend', dbaHtml);
+    dbaNames.push({ id, name: '' });
+}
+
+function removeDBA(id) {
+    const element = document.getElementById(`dba-${id}`);
+    if (element) {
+        element.remove();
+        dbaNames = dbaNames.filter(d => d.id !== id);
+    }
+}
+
+function getDBANames() {
+    const dbaInputs = document.querySelectorAll('.dba-name');
+    const names = [];
+    dbaInputs.forEach(input => {
+        if (input.value.trim()) {
+            names.push(input.value.trim());
+        }
+    });
+    return names;
+}
+
+function addOfficial() {
+    const id = Date.now();
+    const officialHtml = `
+        <div id="official-${id}" style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; background: #f8fafc;">
+            <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 0.75rem;">
+                <h4 style="font-size: 0.938rem; font-weight: 600; margin: 0; flex: 1;">Authorized Official</h4>
+                <button type="button" onclick="removeOfficial(${id})" class="btn-danger btn-small">Remove</button>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label>Full Name <span style="color: #ef4444;">*</span></label>
+                    <input type="text" class="official-name" data-id="${id}" required />
+                </div>
+                <div class="form-group">
+                    <label>Title <span style="color: #ef4444;">*</span></label>
+                    <input type="text" class="official-title" data-id="${id}" required />
+                </div>
+                <div class="form-group">
+                    <label>Email <span style="color: #ef4444;">*</span></label>
+                    <input type="email" class="official-email" data-id="${id}" required />
+                </div>
+                <div class="form-group">
+                    <label>Phone <span style="color: #ef4444;">*</span></label>
+                    <input type="tel" class="official-phone" data-id="${id}" required />
+                </div>
+            </div>
+        </div>
+    `;
+
+    document.getElementById('officials-list').insertAdjacentHTML('beforeend', officialHtml);
+    authorizedOfficials.push({ id, name: '', title: '', email: '', phone: '' });
+}
+
+function removeOfficial(id) {
+    const element = document.getElementById(`official-${id}`);
+    if (element) {
+        element.remove();
+        authorizedOfficials = authorizedOfficials.filter(o => o.id !== id);
+    }
+}
+
+function getOfficials() {
+    const officials = [];
+    authorizedOfficials.forEach(official => {
+        const nameInput = document.querySelector(`.official-name[data-id="${official.id}"]`);
+        const titleInput = document.querySelector(`.official-title[data-id="${official.id}"]`);
+        const emailInput = document.querySelector(`.official-email[data-id="${official.id}"]`);
+        const phoneInput = document.querySelector(`.official-phone[data-id="${official.id}"]`);
+
+        if (nameInput && titleInput && emailInput && phoneInput) {
+            officials.push({
+                id: official.id,
+                name: nameInput.value,
+                title: titleInput.value,
+                email: emailInput.value,
+                phone: phoneInput.value
+            });
+        }
+    });
+    return officials;
+}
+
+function toggleMailingAddress() {
+    const checkbox = document.getElementById('same-as-corporate');
+    const mailingSection = document.getElementById('mailing-address-section');
+
+    if (checkbox.checked) {
+        mailingSection.style.display = 'none';
+    } else {
+        mailingSection.style.display = 'block';
+    }
+}
+
+function saveOrganization(event) {
+    event.preventDefault();
+
+    const id = document.getElementById('organization-edit-id').value;
+    const sameAsCorporate = document.getElementById('same-as-corporate').checked;
+
+    const corporateAddress = {
+        street: document.getElementById('org-corporate-street').value,
+        city: document.getElementById('org-corporate-city').value,
+        state: document.getElementById('org-corporate-state').value.toUpperCase(),
+        zipCode: document.getElementById('org-corporate-zip').value
+    };
+
+    const mailingAddress = sameAsCorporate ?
+        { ...corporateAddress, sameAsCorporate: true } :
+        {
+            street: document.getElementById('org-mailing-street').value,
+            city: document.getElementById('org-mailing-city').value,
+            state: document.getElementById('org-mailing-state').value.toUpperCase(),
+            zipCode: document.getElementById('org-mailing-zip').value,
+            sameAsCorporate: false
+        };
+
+    const organizationData = {
+        id: id || `ORG-${String(organizations.length + 1).padStart(3, '0')}`,
+        name: document.getElementById('org-name').value,
+        dba: getDBANames(),
+        corporateAddress,
+        mailingAddress,
+        tin: document.getElementById('org-tin').value,
+        authorizedOfficials: getOfficials(),
+        primaryContact: {
+            name: document.getElementById('org-primary-name').value,
+            title: document.getElementById('org-primary-title').value,
+            email: document.getElementById('org-primary-email').value,
+            phone: document.getElementById('org-primary-phone').value,
+            fax: document.getElementById('org-primary-fax').value
+        },
+        website: document.getElementById('org-website').value,
+        status: 'Active',
+        createdAt: id ? organizations.find(o => o.id === id)?.createdAt : new Date().toISOString().split('T')[0]
+    };
+
+    if (id) {
+        const index = organizations.findIndex(o => o.id === id);
+        if (index !== -1) {
+            organizations[index] = organizationData;
+        }
+    } else {
+        organizations.push(organizationData);
+
+        // If this is the first organization, set it as current
+        if (organizations.length === 1) {
+            currentOrganization = organizationData;
+            localStorage.setItem('pvCurrentOrganization', JSON.stringify(currentOrganization));
+            updateOrganizationDisplay();
+        }
+    }
+
+    saveOrganizations();
+    renderOrganizations();
+    closeOrganizationModal();
+}
+
+function editOrganization(id) {
+    const org = organizations.find(o => o.id === id);
+    if (!org) return;
+
+    document.getElementById('organization-modal-title').textContent = 'Edit Organization';
+    document.getElementById('organization-edit-id').value = org.id;
+    document.getElementById('org-name').value = org.name;
+    document.getElementById('org-tin').value = org.tin;
+
+    // Corporate Address
+    document.getElementById('org-corporate-street').value = org.corporateAddress.street;
+    document.getElementById('org-corporate-city').value = org.corporateAddress.city;
+    document.getElementById('org-corporate-state').value = org.corporateAddress.state;
+    document.getElementById('org-corporate-zip').value = org.corporateAddress.zipCode;
+
+    // Mailing Address
+    document.getElementById('same-as-corporate').checked = org.mailingAddress.sameAsCorporate;
+    if (!org.mailingAddress.sameAsCorporate) {
+        document.getElementById('org-mailing-street').value = org.mailingAddress.street;
+        document.getElementById('org-mailing-city').value = org.mailingAddress.city;
+        document.getElementById('org-mailing-state').value = org.mailingAddress.state;
+        document.getElementById('org-mailing-zip').value = org.mailingAddress.zipCode;
+    }
+    toggleMailingAddress();
+
+    // Primary Contact
+    document.getElementById('org-primary-name').value = org.primaryContact.name;
+    document.getElementById('org-primary-title').value = org.primaryContact.title;
+    document.getElementById('org-primary-email').value = org.primaryContact.email;
+    document.getElementById('org-primary-phone').value = org.primaryContact.phone;
+    document.getElementById('org-primary-fax').value = org.primaryContact.fax || '';
+    document.getElementById('org-website').value = org.website || '';
+
+    // DBA Names
+    dbaNames = [];
+    document.getElementById('dba-list').innerHTML = '';
+    if (org.dba && org.dba.length > 0) {
+        org.dba.forEach(name => {
+            const id = Date.now() + Math.random();
+            dbaNames.push({ id, name });
+            const dbaHtml = `
+                <div id="dba-${id}" style="display: flex; gap: 0.75rem; align-items: center; margin-bottom: 0.75rem;">
+                    <input type="text" placeholder="Enter DBA name" class="dba-name" data-id="${id}" value="${name}" style="flex: 1;" />
+                    <button type="button" onclick="removeDBA(${id})" class="btn-danger btn-small">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+            `;
+            document.getElementById('dba-list').insertAdjacentHTML('beforeend', dbaHtml);
+        });
+    }
+
+    // Authorized Officials
+    authorizedOfficials = [];
+    document.getElementById('officials-list').innerHTML = '';
+    if (org.authorizedOfficials && org.authorizedOfficials.length > 0) {
+        org.authorizedOfficials.forEach(official => {
+            const id = official.id || Date.now() + Math.random();
+            authorizedOfficials.push({ id, ...official });
+            const officialHtml = `
+                <div id="official-${id}" style="border: 1px solid #e2e8f0; border-radius: 8px; padding: 1rem; margin-bottom: 1rem; background: #f8fafc;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                        <h4 style="font-size: 0.938rem; font-weight: 600; margin: 0; flex: 1;">Authorized Official</h4>
+                        <button type="button" onclick="removeOfficial(${id})" class="btn-danger btn-small">Remove</button>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label>Full Name <span style="color: #ef4444;">*</span></label>
+                            <input type="text" class="official-name" data-id="${id}" value="${official.name}" required />
+                        </div>
+                        <div class="form-group">
+                            <label>Title <span style="color: #ef4444;">*</span></label>
+                            <input type="text" class="official-title" data-id="${id}" value="${official.title}" required />
+                        </div>
+                        <div class="form-group">
+                            <label>Email <span style="color: #ef4444;">*</span></label>
+                            <input type="email" class="official-email" data-id="${id}" value="${official.email}" required />
+                        </div>
+                        <div class="form-group">
+                            <label>Phone <span style="color: #ef4444;">*</span></label>
+                            <input type="tel" class="official-phone" data-id="${id}" value="${official.phone}" required />
+                        </div>
+                    </div>
+                </div>
+            `;
+            document.getElementById('officials-list').insertAdjacentHTML('beforeend', officialHtml);
+        });
+    }
+
+    document.getElementById('organization-modal').classList.add('active');
 }
 
 // ===== DATA MANAGEMENT =====
@@ -120,6 +644,7 @@ function loadData() {
         providers = [
             {
                 id: 'PROV-001',
+                organizationId: 'ORG-001',
                 name: 'Dr. Sarah Johnson',
                 specialty: 'Family Medicine',
                 npi: '1234567890',
@@ -165,6 +690,7 @@ function loadData() {
             },
             {
                 id: 'PROV-002',
+                organizationId: 'ORG-001',
                 name: 'Dr. Michael Chen',
                 specialty: 'Cardiology',
                 npi: '9876543210',
@@ -239,6 +765,7 @@ function loadData() {
             },
             {
                 id: 'PROV-003',
+                organizationId: 'ORG-002',
                 name: 'Dr. Emily Davis',
                 specialty: 'Pediatrics',
                 npi: '5555555555',
@@ -510,16 +1037,23 @@ function renderProviders() {
     const container = document.getElementById('providers-list');
     if (!container) return;
 
-    if (providers.length === 0) {
+    // Filter providers by current organization
+    const orgProviders = currentOrganization ?
+        providers.filter(p => p.organizationId === currentOrganization.id) :
+        providers;
+
+    if (orgProviders.length === 0) {
         container.innerHTML = `
             <div class="coming-soon">
-                No providers found. Click "Add Provider" to get started.
+                ${currentOrganization ?
+                    `No providers found for ${currentOrganization.name}. Click "Add Provider" to get started.` :
+                    'No providers found. Click "Add Provider" to get started.'}
             </div>
         `;
         return;
     }
 
-    container.innerHTML = providers.map(provider => {
+    container.innerHTML = orgProviders.map(provider => {
         const initials = provider.name.split(' ').map(n => n[0]).join('');
         return `
             <div class="provider-card" onclick="viewProviderDetail('${provider.id}')">

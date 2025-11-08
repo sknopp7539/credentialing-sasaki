@@ -105,6 +105,15 @@
                     </svg>
                     <span>Locations</span>
                 </button>
+                <button class="nav-item" onclick="showView('organizations')" data-view="organizations">
+                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                    <span>Organizations</span>
+                </button>
                 <button class="nav-item" onclick="showView('analytics')" data-view="analytics">
                     <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <line x1="18" y1="20" x2="18" y2="10"></line>
@@ -140,6 +149,21 @@
                         <path d="m21 21-4.35-4.35"></path>
                     </svg>
                     <input type="text" placeholder="Search providers... (⌘K)">
+                </div>
+                <div style="position: relative;">
+                    <button onclick="toggleOrgDropdown()" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: white; border: 1px solid #e2e8f0; border-radius: 8px; cursor: pointer; font-size: 0.875rem;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #06b6d4;">
+                            <rect x="3" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="14" width="7" height="7"></rect>
+                            <rect x="3" y="14" width="7" height="7"></rect>
+                        </svg>
+                        <span id="current-org-name" style="font-weight: 500; color: #1e293b;">Loading...</span>
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #64748b;">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                    </button>
+                    <div id="org-dropdown" style="display: none; position: absolute; top: 100%; right: 0; margin-top: 0.5rem; background: white; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); min-width: 300px; max-height: 400px; overflow-y: auto; z-index: 1000;"></div>
                 </div>
                 <div class="topbar-actions">
                     <button class="icon-btn" id="notifications-btn">
@@ -421,6 +445,23 @@
                         </table>
                     </div>
                 </div>
+            </div>
+
+            <div id="organizations-view" class="view">
+                <div class="page-header">
+                    <div>
+                        <h1>Organizations</h1>
+                        <p class="page-subtitle">Manage healthcare organizations and facilities</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="showOrganizationModal()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        Add Organization
+                    </button>
+                </div>
+                <div class="providers-grid" id="organizations-list"></div>
             </div>
 
             <div id="email-notifications-view" class="view">
@@ -954,6 +995,168 @@
 
     <!-- Payer Detail View -->
     <div id="payer-detail-view" class="view"></div>
+
+    <!-- Organization Modal -->
+    <div id="organization-modal" class="modal">
+        <div class="modal-content" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
+            <div class="modal-header">
+                <div>
+                    <h2 id="organization-modal-title">Add Organization</h2>
+                    <p style="font-size: 0.875rem; color: #64748b; margin-top: 0.25rem;">
+                        Create a new healthcare organization with comprehensive details
+                    </p>
+                </div>
+                <span class="close" onclick="closeOrganizationModal()">&times;</span>
+            </div>
+            <form id="organization-form" onsubmit="saveOrganization(event)">
+                <input type="hidden" id="organization-edit-id">
+
+                <!-- Basic Information -->
+                <div style="margin-bottom: 1.5rem;">
+                    <h3 style="font-size: 1.125rem; font-weight: 600; color: #1e293b; margin-bottom: 1rem;">Basic Information</h3>
+                    <div class="form-group">
+                        <label for="org-name">Organization Name <span style="color: #ef4444;">*</span></label>
+                        <input type="text" id="org-name" required placeholder="e.g., Metropolitan Healthcare Group">
+                    </div>
+                    <div class="form-group">
+                        <label for="org-tin">Tax Identification Number (TIN) <span style="color: #ef4444;">*</span></label>
+                        <input type="text" id="org-tin" required placeholder="XX-XXXXXXX">
+                    </div>
+                    <div class="form-group">
+                        <label for="org-website">Website</label>
+                        <input type="url" id="org-website" placeholder="https://www.example.com">
+                    </div>
+                </div>
+
+                <!-- DBA (Doing Business As) -->
+                <div style="margin-bottom: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 style="font-size: 1.125rem; font-weight: 600; color: #1e293b; margin: 0;">Doing Business As (DBA)</h3>
+                        <button type="button" onclick="addDBA()" class="btn btn-secondary btn-small">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            Add DBA Name
+                        </button>
+                    </div>
+                    <div id="dba-list"></div>
+                </div>
+
+                <!-- Corporate Address -->
+                <div style="margin-bottom: 1.5rem;">
+                    <h3 style="font-size: 1.125rem; font-weight: 600; color: #1e293b; margin-bottom: 1rem;">Corporate/Billing Address</h3>
+                    <div class="form-group">
+                        <label for="org-corporate-street">Street Address <span style="color: #ef4444;">*</span></label>
+                        <input type="text" id="org-corporate-street" required>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label for="org-corporate-city">City <span style="color: #ef4444;">*</span></label>
+                            <input type="text" id="org-corporate-city" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="org-corporate-state">State <span style="color: #ef4444;">*</span></label>
+                            <input type="text" id="org-corporate-state" required maxlength="2" placeholder="XX">
+                        </div>
+                        <div class="form-group">
+                            <label for="org-corporate-zip">ZIP Code <span style="color: #ef4444;">*</span></label>
+                            <input type="text" id="org-corporate-zip" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mailing Address -->
+                <div style="margin-bottom: 1.5rem;">
+                    <h3 style="font-size: 1.125rem; font-weight: 600; color: #1e293b; margin-bottom: 1rem;">Mailing Address</h3>
+                    <div class="form-group">
+                        <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer;">
+                            <input type="checkbox" id="same-as-corporate" onchange="toggleMailingAddress()" checked>
+                            <span>Same as Corporate Address</span>
+                        </label>
+                    </div>
+                    <div id="mailing-address-section" style="display: none;">
+                        <div class="form-group">
+                            <label for="org-mailing-street">Street Address</label>
+                            <input type="text" id="org-mailing-street">
+                        </div>
+                        <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 1rem;">
+                            <div class="form-group">
+                                <label for="org-mailing-city">City</label>
+                                <input type="text" id="org-mailing-city">
+                            </div>
+                            <div class="form-group">
+                                <label for="org-mailing-state">State</label>
+                                <input type="text" id="org-mailing-state" maxlength="2" placeholder="XX">
+                            </div>
+                            <div class="form-group">
+                                <label for="org-mailing-zip">ZIP Code</label>
+                                <input type="text" id="org-mailing-zip">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Primary Contact -->
+                <div style="margin-bottom: 1.5rem;">
+                    <h3 style="font-size: 1.125rem; font-weight: 600; color: #1e293b; margin-bottom: 1rem;">Primary Contact</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label for="org-primary-name">Full Name <span style="color: #ef4444;">*</span></label>
+                            <input type="text" id="org-primary-name" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="org-primary-title">Title <span style="color: #ef4444;">*</span></label>
+                            <input type="text" id="org-primary-title" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="org-primary-email">Email <span style="color: #ef4444;">*</span></label>
+                            <input type="email" id="org-primary-email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="org-primary-phone">Phone <span style="color: #ef4444;">*</span></label>
+                            <input type="tel" id="org-primary-phone" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="org-primary-fax">Fax</label>
+                            <input type="tel" id="org-primary-fax">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Authorized Officials -->
+                <div style="margin-bottom: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 style="font-size: 1.125rem; font-weight: 600; color: #1e293b; margin: 0;">Authorized Officials</h3>
+                        <button type="button" onclick="addOfficial()" class="btn btn-secondary btn-small">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            Add Official
+                        </button>
+                    </div>
+                    <p style="font-size: 0.875rem; color: #64748b; margin-bottom: 1rem;">
+                        Add executives or officials authorized to represent the organization (CEO, CMO, etc.)
+                    </p>
+                    <div id="officials-list"></div>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeOrganizationModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.5rem;">
+                            <rect x="3" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="14" width="7" height="7"></rect>
+                            <rect x="3" y="14" width="7" height="7"></rect>
+                        </svg>
+                        Save Organization
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <script src="app.js"></script>
 </body>
