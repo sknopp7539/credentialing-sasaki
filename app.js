@@ -284,6 +284,8 @@ function switchOrganization(orgId) {
                 renderProviders();
             } else if (viewId === 'credentialing') {
                 renderCredentialing();
+            } else if (viewId === 'enrollments') {
+                renderEnrollments();
             } else if (viewId === 'locations') {
                 renderLocations();
             } else if (viewId === 'payers') {
@@ -2959,12 +2961,32 @@ function renderEnrollments() {
     const container = document.getElementById('enrollments-list');
     if (!container) return;
 
-    if (enrollments.length === 0) {
-        container.innerHTML = '<div class="coming-soon">No enrollments found.</div>';
+    console.log('📝 Rendering enrollments view...');
+    console.log('   Current Organization:', currentOrganization ? `${currentOrganization.name} (ID: ${currentOrganization.id})` : 'None');
+    console.log('   Total enrollments in database:', enrollments.length);
+
+    // Filter enrollments by current organization (through provider)
+    const orgEnrollments = currentOrganization ?
+        enrollments.filter(enrollment => {
+            const provider = providers.find(p => p.id === enrollment.providerId);
+            return provider && provider.organizationId === currentOrganization.id;
+        }) :
+        enrollments;
+
+    console.log('   Filtered enrollments for current org:', orgEnrollments.length);
+
+    if (orgEnrollments.length === 0) {
+        container.innerHTML = `
+            <div class="coming-soon">
+                ${currentOrganization ?
+                    `No enrollments found for ${currentOrganization.name}. Enrollments will appear here when providers are enrolled with payers.` :
+                    'No enrollments found.'}
+            </div>
+        `;
         return;
     }
 
-    container.innerHTML = enrollments.map(enrollment => {
+    container.innerHTML = orgEnrollments.map(enrollment => {
         const provider = providers.find(p => p.id === enrollment.providerId);
         const payer = payers.find(p => p.id === enrollment.payerId);
 
