@@ -2,247 +2,385 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Credentialing System</title>
+    <meta name="viewport"="width=device-width, initial-scale=1.0">
+    <title>ProviderVault - Healthcare Credentialing System</title>
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <!-- Login/Registration Screen -->
+    <!-- Login Screen -->
     <div id="auth-screen" class="auth-screen">
         <div class="auth-container">
-            <div class="auth-header">
-                <h1>Credentialing System</h1>
-                <p>Secure credential management and verification</p>
+            <div class="auth-logo">
+                <div class="logo-icon">
+                    <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+                        <rect width="40" height="40" rx="8" fill="#06b6d4"/>
+                        <path d="M20 10L28 15V25C28 29 20 32 20 32C20 32 12 29 12 25V15L20 10Z" stroke="white" stroke-width="2" fill="none"/>
+                    </svg>
+                </div>
+                <h1>ProviderVault</h1>
+                <p>Healthcare Credentialing Management System</p>
             </div>
 
             <!-- Login Form -->
             <div id="login-form" class="auth-form active">
-                <h2>Login</h2>
                 <form onsubmit="login(event)">
                     <div class="form-group">
                         <label for="login-email">Email</label>
-                        <input type="email" id="login-email" required placeholder="Enter your email">
+                        <input type="email" id="login-email" required placeholder="Enter your email" value="admin@providervault.com">
                     </div>
                     <div class="form-group">
                         <label for="login-password">Password</label>
-                        <input type="password" id="login-password" required placeholder="Enter your password">
+                        <input type="password" id="login-password" required placeholder="Enter your password" value="demo123">
                     </div>
-                    <button type="submit" class="btn btn-primary btn-block">Login</button>
+                    <button type="submit" class="btn btn-primary btn-block">Sign In</button>
+                    <p class="demo-info">Demo credentials: admin@providervault.com / demo123</p>
                 </form>
-                <p class="auth-switch">
-                    Don't have an account? <a href="#" onclick="switchAuthForm('register')">Register here</a>
-                </p>
-            </div>
-
-            <!-- Registration Form -->
-            <div id="register-form" class="auth-form">
-                <h2>Register</h2>
-                <form onsubmit="register(event)">
-                    <div class="form-group">
-                        <label for="reg-name">Full Name</label>
-                        <input type="text" id="reg-name" required placeholder="Enter your full name">
-                    </div>
-                    <div class="form-group">
-                        <label for="reg-email">Email</label>
-                        <input type="email" id="reg-email" required placeholder="Enter your email">
-                    </div>
-                    <div class="form-group">
-                        <label for="reg-password">Password</label>
-                        <input type="password" id="reg-password" required placeholder="Create a password">
-                    </div>
-                    <div class="form-group">
-                        <label for="reg-organization">Organization (Optional)</label>
-                        <input type="text" id="reg-organization" placeholder="Your organization name">
-                    </div>
-                    <div class="form-group">
-                        <label for="reg-role">Account Type *</label>
-                        <select id="reg-role" required>
-                            <option value="">Select your role</option>
-                            <option value="issuer">Issuer - I issue credentials to others</option>
-                            <option value="recipient">Recipient - I receive and manage credentials</option>
-                        </select>
-                    </div>
-                    <button type="submit" class="btn btn-primary btn-block">Register</button>
-                </form>
-                <p class="auth-switch">
-                    Already have an account? <a href="#" onclick="switchAuthForm('login')">Login here</a>
-                </p>
             </div>
         </div>
     </div>
 
-    <!-- Main Application (hidden until logged in) -->
+    <!-- Main Application -->
     <div id="main-app" class="main-app" style="display: none;">
-        <nav class="navbar">
-            <div class="nav-brand">Credentialing System</div>
-            <div class="nav-center">
-                <div class="nav-links" id="nav-links">
-                    <button class="nav-btn active" onclick="showView('dashboard')">Credentials</button>
-                    <button class="nav-btn" onclick="showView('providers')">Providers</button>
-                    <button class="nav-btn" onclick="showView('locations')">Locations</button>
-                    <button class="nav-btn" onclick="showView('payers')">Payers</button>
-                    <button class="nav-btn" onclick="showView('enrollments')">Enrollments</button>
-                    <button class="nav-btn" onclick="showView('verify')">Verify</button>
+        <!-- Sidebar -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <div class="logo-icon">
+                        <svg width="32" height="32" viewBox="0 0 40 40" fill="none">
+                            <rect width="40" height="40" rx="8" fill="#06b6d4"/>
+                            <path d="M20 10L28 15V25C28 29 20 32 20 32C20 32 12 29 12 25V15L20 10Z" stroke="white" stroke-width="2" fill="none"/>
+                        </svg>
+                    </div>
+                    <span class="logo-text">ProviderVault</span>
                 </div>
             </div>
-            <div class="nav-user">
-                <div class="user-info">
-                    <span class="user-role" id="user-role-badge"></span>
-                    <span class="user-name" id="user-name"></span>
+
+            <nav class="sidebar-nav">
+                <button class="nav-item active" onclick="showView('dashboard')" data-view="dashboard">
+                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="3" width="7" height="7"></rect>
+                        <rect x="14" y="14" width="7" height="7"></rect>
+                        <rect x="3" y="14" width="7" height="7"></rect>
+                    </svg>
+                    <span>Dashboard</span>
+                </button>
+                <button class="nav-item" onclick="showView('providers')" data-view="providers">
+                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                    <span>Providers</span>
+                </button>
+                <button class="nav-item" onclick="showView('credentialing')" data-view="credentialing">
+                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                    <span>Credentialing</span>
+                </button>
+                <button class="nav-item" onclick="showView('enrollments')" data-view="enrollments">
+                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 11l3 3L22 4"></path>
+                        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                    </svg>
+                    <span>Enrollments</span>
+                </button>
+                <button class="nav-item" onclick="showView('payers')" data-view="payers">
+                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="12" y1="1" x2="12" y2="23"></line>
+                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                    </svg>
+                    <span>Payer Contracts</span>
+                </button>
+                <button class="nav-item" onclick="showView('locations')" data-view="locations">
+                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                        <circle cx="12" cy="10" r="3"></circle>
+                    </svg>
+                    <span>Locations</span>
+                </button>
+                <button class="nav-item" onclick="showView('analytics')" data-view="analytics">
+                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="20" x2="18" y2="10"></line>
+                        <line x1="12" y1="20" x2="12" y2="4"></line>
+                        <line x1="6" y1="20" x2="6" y2="14"></line>
+                    </svg>
+                    <span>Analytics</span>
+                </button>
+                <button class="nav-item" onclick="showView('settings')" data-view="settings">
+                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M12 1v6m0 6v6m9-9h-6m-6 0H3M18.36 5.64l-4.24 4.24M9.88 14.12l-4.24 4.24M18.36 18.36l-4.24-4.24M9.88 9.88L5.64 5.64"></path>
+                    </svg>
+                    <span>Settings</span>
+                </button>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Top Bar -->
+            <div class="topbar">
+                <div class="search-bar">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path d="m21 21-4.35-4.35"></path>
+                    </svg>
+                    <input type="text" placeholder="Search providers... (⌘K)">
                 </div>
-                <button class="btn btn-secondary btn-small" onclick="logout()">Logout</button>
-            </div>
-        </nav>
-
-    <main class="container">
-        <!-- Dashboard View -->
-        <div id="dashboard-view" class="view active">
-            <div class="view-header">
-                <h1>Credential Management Dashboard</h1>
-                <button class="btn btn-primary" onclick="showAddModal()">+ Add Credential</button>
-            </div>
-
-            <div class="credentials-grid" id="credentials-list">
-                <!-- Credentials will be dynamically loaded here -->
-            </div>
-        </div>
-
-        <!-- Verify View -->
-        <div id="verify-view" class="view">
-            <div class="view-header">
-                <h1>Verify Credential</h1>
+                <div class="topbar-actions">
+                    <button class="icon-btn" id="notifications-btn">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                        </svg>
+                        <span class="notification-badge">3</span>
+                    </button>
+                    <div class="user-menu">
+                        <div class="user-avatar">JD</div>
+                        <div class="user-info-small">
+                            <div id="current-user-name" class="user-name-small">Admin User</div>
+                        </div>
+                        <button class="btn-logout" onclick="logout()">Logout</button>
+                    </div>
+                </div>
             </div>
 
-            <div class="verify-container">
-                <div class="verify-input-section">
-                    <label for="credential-id">Enter Credential ID:</label>
-                    <input type="text" id="credential-id" placeholder="e.g., CRED-2024-001">
-                    <button class="btn btn-primary" onclick="verifyCredential()">Verify</button>
+            <!-- Dashboard View -->
+            <div id="dashboard-view" class="view active">
+                <div class="page-header">
+                    <h1>Dashboard</h1>
                 </div>
 
-                <div id="verification-result" class="verification-result"></div>
+                <!-- Stats Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-label">Total Providers</span>
+                        </div>
+                        <div class="stat-value" id="total-providers">16</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-label">Total Enrollments</span>
+                        </div>
+                        <div class="stat-value" id="total-enrollments">20</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-label">Pending Credentialing</span>
+                        </div>
+                        <div class="stat-value" id="pending-credentialing">12</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-label">Open Claims</span>
+                        </div>
+                        <div class="stat-value" id="open-claims">1</div>
+                    </div>
+                </div>
+
+                <!-- Widgets Grid -->
+                <div class="widgets-grid">
+                    <!-- Quick Actions -->
+                    <div class="widget-card">
+                        <div class="widget-header">
+                            <h3>Quick Actions</h3>
+                        </div>
+                        <div class="quick-actions">
+                            <button class="action-item" onclick="showView('providers')">
+                                <div class="action-title">Manage Providers</div>
+                                <div class="action-desc">Add or update provider information</div>
+                            </button>
+                            <button class="action-item" onclick="showView('credentialing')">
+                                <div class="action-title">Credentialing Pipeline</div>
+                                <div class="action-desc">Track verification progress</div>
+                            </button>
+                            <button class="action-item" onclick="showView('enrollments')">
+                                <div class="action-title">Enrollments</div>
+                                <div class="action-desc">Manage payer enrollments</div>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- System Status -->
+                    <div class="widget-card">
+                        <div class="widget-header">
+                            <h3>System Status</h3>
+                        </div>
+                        <div class="status-list">
+                            <div class="status-item">
+                                <span>Database</span>
+                                <div class="status-indicator">
+                                    <span class="status-dot active"></span>
+                                    <span class="status-text">Connected</span>
+                                </div>
+                            </div>
+                            <div class="status-item">
+                                <span>Authentication</span>
+                                <div class="status-indicator">
+                                    <span class="status-dot active"></span>
+                                    <span class="status-text">Active</span>
+                                </div>
+                            </div>
+                            <div class="status-item">
+                                <span>Storage</span>
+                                <div class="status-indicator">
+                                    <span class="status-dot active"></span>
+                                    <span class="status-text">Available</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Activity -->
+                    <div class="widget-card">
+                        <div class="widget-header">
+                            <h3>Recent Activity</h3>
+                        </div>
+                        <div class="activity-empty">
+                            <p>Activity tracking will appear here as you use the system.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Upcoming Expirations -->
+                <div class="expirations-section">
+                    <div class="section-header">
+                        <h2>Upcoming Expirations</h2>
+                        <button class="btn btn-secondary btn-small">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                            Export Report
+                        </button>
+                    </div>
+
+                    <!-- Filters -->
+                    <div class="filters-bar">
+                        <div class="filter-group">
+                            <button class="filter-btn active" onclick="filterExpirations('all')">All</button>
+                            <button class="filter-btn" onclick="filterExpirations('today')">Upcoming (Today)</button>
+                            <button class="filter-btn" onclick="filterExpirations('30days')">Upcoming (30 days)</button>
+                            <button class="filter-btn" onclick="filterExpirations('60days')">At Expiration (60 days)</button>
+                        </div>
+                        <div class="tag-group">
+                            <span class="tag-label">Tags:</span>
+                            <button class="tag active" onclick="filterByTag('all')">All</button>
+                            <button class="tag tag-urgent" onclick="filterByTag('urgent')">Urgent</button>
+                            <button class="tag tag-warning" onclick="filterByTag('warning')">Warning</button>
+                            <button class="tag tag-upcoming" onclick="filterByTag('upcoming')">Upcoming</button>
+                        </div>
+                    </div>
+
+                    <!-- Expirations Table -->
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Provider</th>
+                                    <th>Document</th>
+                                    <th>Category</th>
+                                    <th>Expires In</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="expirations-tbody">
+                                <!-- Will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Providers View -->
+            <div id="providers-view" class="view">
+                <div class="page-header">
+                    <h1>Providers</h1>
+                    <button class="btn btn-primary" onclick="showProviderModal()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        Add Provider
+                    </button>
+                </div>
+                <div class="providers-grid" id="providers-list"></div>
+            </div>
+
+            <!-- Provider Detail View -->
+            <div id="provider-detail-view" class="view"></div>
+
+            <!-- Analytics View -->
+            <div id="analytics-view" class="view">
+                <div class="page-header">
+                    <div>
+                        <h1>Analytics & Reporting</h1>
+                        <p class="page-subtitle">Gain insights into your credentialing and performance metrics</p>
+                    </div>
+                    <button class="btn btn-primary">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        Export Report
+                    </button>
+                </div>
+                <div id="analytics-content"></div>
+            </div>
+
+            <!-- Other Views (placeholder) -->
+            <div id="credentialing-view" class="view">
+                <div class="page-header">
+                    <h1>Credentialing</h1>
+                </div>
+                <div class="coming-soon">Credentialing management coming soon...</div>
+            </div>
+
+            <div id="enrollments-view" class="view">
+                <div class="page-header">
+                    <h1>Provider Enrollments</h1>
+                    <button class="btn btn-primary" onclick="showEnrollmentModal()">Add Enrollment</button>
+                </div>
+                <div class="enrollments-grid" id="enrollments-list"></div>
+            </div>
+
+            <div id="payers-view" class="view">
+                <div class="page-header">
+                    <h1>Payer/Insurance Management</h1>
+                    <button class="btn btn-primary" onclick="showPayerModal()">Add Payer</button>
+                </div>
+                <div class="payers-grid" id="payers-list"></div>
+            </div>
+
+            <div id="locations-view" class="view">
+                <div class="page-header">
+                    <h1>Location Management</h1>
+                    <button class="btn btn-primary" onclick="showLocationModal()">Add Location</button>
+                </div>
+                <div class="locations-grid" id="locations-list"></div>
+            </div>
+
+            <div id="settings-view" class="view">
+                <div class="page-header">
+                    <h1>Settings</h1>
+                </div>
+                <div class="coming-soon">Settings configuration coming soon...</div>
             </div>
         </div>
-
-        <!-- Providers View -->
-        <div id="providers-view" class="view">
-            <div class="view-header">
-                <h1>Provider Management</h1>
-                <button class="btn btn-primary" onclick="showProviderModal()">+ Add Provider</button>
-            </div>
-
-            <div class="providers-grid" id="providers-list">
-                <!-- Providers will be dynamically loaded here -->
-            </div>
-        </div>
-
-        <!-- Locations View -->
-        <div id="locations-view" class="view">
-            <div class="view-header">
-                <h1>Location Management</h1>
-                <button class="btn btn-primary" onclick="showLocationModal()">+ Add Location</button>
-            </div>
-
-            <div class="locations-grid" id="locations-list">
-                <!-- Locations will be dynamically loaded here -->
-            </div>
-        </div>
-
-        <!-- Payers View -->
-        <div id="payers-view" class="view">
-            <div class="view-header">
-                <h1>Payer/Insurance Management</h1>
-                <button class="btn btn-primary" onclick="showPayerModal()">+ Add Payer</button>
-            </div>
-
-            <div class="payers-grid" id="payers-list">
-                <!-- Payers will be dynamically loaded here -->
-            </div>
-        </div>
-
-        <!-- Enrollments View -->
-        <div id="enrollments-view" class="view">
-            <div class="view-header">
-                <h1>Provider Enrollments</h1>
-                <button class="btn btn-primary" onclick="showEnrollmentModal()">+ Add Enrollment</button>
-            </div>
-
-            <div class="enrollments-grid" id="enrollments-list">
-                <!-- Enrollments will be dynamically loaded here -->
-            </div>
-        </div>
-    </main>
     </div>
 
-    <!-- Add/Edit Modal -->
-    <div id="credential-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="modal-title">Add Credential</h2>
-                <span class="close" onclick="closeModal()">&times;</span>
-            </div>
-            <form id="credential-form" onsubmit="saveCredential(event)">
-                <input type="hidden" id="edit-id">
-
-                <div class="form-group">
-                    <label for="cred-name">Credential Name *</label>
-                    <input type="text" id="cred-name" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="cred-type">Type *</label>
-                    <select id="cred-type" required>
-                        <option value="">Select Type</option>
-                        <option value="Certificate">Certificate</option>
-                        <option value="License">License</option>
-                        <option value="Badge">Badge</option>
-                        <option value="Certification">Certification</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="cred-recipient">Recipient Name *</label>
-                    <input type="text" id="cred-recipient" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="cred-recipient-email">Recipient Email *</label>
-                    <input type="email" id="cred-recipient-email" required placeholder="recipient@example.com">
-                </div>
-
-                <div class="form-group" id="issuer-field">
-                    <label for="cred-issuer">Issuing Organization *</label>
-                    <input type="text" id="cred-issuer">
-                </div>
-
-                <div class="form-group">
-                    <label for="cred-issue-date">Issue Date *</label>
-                    <input type="date" id="cred-issue-date" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="cred-expiry-date">Expiry Date</label>
-                    <input type="date" id="cred-expiry-date">
-                </div>
-
-                <div class="form-group">
-                    <label for="cred-status">Status *</label>
-                    <select id="cred-status" required>
-                        <option value="Active">Active</option>
-                        <option value="Expired">Expired</option>
-                        <option value="Revoked">Revoked</option>
-                        <option value="Pending">Pending</option>
-                    </select>
-                </div>
-
-                <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
+    <!-- Modals (reusing existing modals with minor updates) -->
     <!-- Provider Modal -->
     <div id="provider-modal" class="modal">
         <div class="modal-content">
@@ -252,208 +390,36 @@
             </div>
             <form id="provider-form" onsubmit="saveProvider(event)">
                 <input type="hidden" id="provider-edit-id">
-
                 <div class="form-group">
                     <label for="provider-name">Provider Name *</label>
                     <input type="text" id="provider-name" required>
                 </div>
-
                 <div class="form-group">
                     <label for="provider-npi">NPI Number *</label>
                     <input type="text" id="provider-npi" required placeholder="10-digit NPI">
                 </div>
-
                 <div class="form-group">
                     <label for="provider-specialty">Specialty *</label>
                     <input type="text" id="provider-specialty" required>
                 </div>
-
-                <div class="form-group">
-                    <label for="provider-license">License Number *</label>
-                    <input type="text" id="provider-license" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="provider-state">License State *</label>
-                    <select id="provider-state" required>
-                        <option value="">Select State</option>
-                        <option value="AL">Alabama</option>
-                        <option value="CA">California</option>
-                        <option value="FL">Florida</option>
-                        <option value="NY">New York</option>
-                        <option value="TX">Texas</option>
-                    </select>
-                </div>
-
                 <div class="form-group">
                     <label for="provider-email">Email *</label>
                     <input type="email" id="provider-email" required>
                 </div>
-
                 <div class="form-group">
                     <label for="provider-phone">Phone *</label>
                     <input type="tel" id="provider-phone" required>
                 </div>
-
-                <div class="form-group">
-                    <label for="provider-location">Practice Location *</label>
-                    <select id="provider-location" required>
-                        <option value="">Select Location</option>
-                    </select>
-                </div>
-
                 <div class="form-group">
                     <label for="provider-status">Status *</label>
                     <select id="provider-status" required>
                         <option value="Active">Active</option>
                         <option value="Pending">Pending</option>
                         <option value="Inactive">Inactive</option>
-                        <option value="Suspended">Suspended</option>
                     </select>
                 </div>
-
                 <div class="modal-actions">
                     <button type="button" class="btn btn-secondary" onclick="closeProviderModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Location Modal -->
-    <div id="location-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="location-modal-title">Add Location</h2>
-                <span class="close" onclick="closeLocationModal()">&times;</span>
-            </div>
-            <form id="location-form" onsubmit="saveLocation(event)">
-                <input type="hidden" id="location-edit-id">
-
-                <div class="form-group">
-                    <label for="location-name">Location Name *</label>
-                    <input type="text" id="location-name" required placeholder="e.g., Main Hospital">
-                </div>
-
-                <div class="form-group">
-                    <label for="location-type">Location Type *</label>
-                    <select id="location-type" required>
-                        <option value="">Select Type</option>
-                        <option value="Hospital">Hospital</option>
-                        <option value="Clinic">Clinic</option>
-                        <option value="Medical Office">Medical Office</option>
-                        <option value="Urgent Care">Urgent Care</option>
-                        <option value="Surgery Center">Surgery Center</option>
-                        <option value="Other">Other</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="location-address">Street Address *</label>
-                    <input type="text" id="location-address" required placeholder="123 Main Street">
-                </div>
-
-                <div class="form-group">
-                    <label for="location-city">City *</label>
-                    <input type="text" id="location-city" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="location-state">State *</label>
-                    <select id="location-state" required>
-                        <option value="">Select State</option>
-                        <option value="AL">Alabama</option>
-                        <option value="CA">California</option>
-                        <option value="FL">Florida</option>
-                        <option value="NY">New York</option>
-                        <option value="TX">Texas</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="location-zip">ZIP Code *</label>
-                    <input type="text" id="location-zip" required placeholder="12345">
-                </div>
-
-                <div class="form-group">
-                    <label for="location-phone">Phone *</label>
-                    <input type="tel" id="location-phone" required placeholder="(555) 123-4567">
-                </div>
-
-                <div class="form-group">
-                    <label for="location-status">Status *</label>
-                    <select id="location-status" required>
-                        <option value="Active">Active</option>
-                        <option value="Inactive">Inactive</option>
-                        <option value="Under Construction">Under Construction</option>
-                    </select>
-                </div>
-
-                <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closeLocationModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Payer Modal -->
-    <div id="payer-modal" class="modal">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="payer-modal-title">Add Payer</h2>
-                <span class="close" onclick="closePayerModal()">&times;</span>
-            </div>
-            <form id="payer-form" onsubmit="savePayer(event)">
-                <input type="hidden" id="payer-edit-id">
-
-                <div class="form-group">
-                    <label for="payer-name">Payer/Insurance Name *</label>
-                    <input type="text" id="payer-name" required>
-                </div>
-
-                <div class="form-group">
-                    <label for="payer-type">Payer Type *</label>
-                    <select id="payer-type" required>
-                        <option value="">Select Type</option>
-                        <option value="Commercial">Commercial Insurance</option>
-                        <option value="Medicare">Medicare</option>
-                        <option value="Medicaid">Medicaid</option>
-                        <option value="Government">Government</option>
-                        <option value="Other">Other</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label for="payer-id">Payer ID *</label>
-                    <input type="text" id="payer-id" required placeholder="5-digit Payer ID">
-                </div>
-
-                <div class="form-group">
-                    <label for="payer-contact">Contact Name</label>
-                    <input type="text" id="payer-contact">
-                </div>
-
-                <div class="form-group">
-                    <label for="payer-phone">Phone</label>
-                    <input type="tel" id="payer-phone">
-                </div>
-
-                <div class="form-group">
-                    <label for="payer-email">Email</label>
-                    <input type="email" id="payer-email">
-                </div>
-
-                <div class="form-group">
-                    <label for="payer-status">Status *</label>
-                    <select id="payer-status" required>
-                        <option value="Active">Active</option>
-                        <option value="Inactive">Inactive</option>
-                    </select>
-                </div>
-
-                <div class="modal-actions">
-                    <button type="button" class="btn btn-secondary" onclick="closePayerModal()">Cancel</button>
                     <button type="submit" class="btn btn-primary">Save</button>
                 </div>
             </form>
@@ -469,31 +435,22 @@
             </div>
             <form id="enrollment-form" onsubmit="saveEnrollment(event)">
                 <input type="hidden" id="enrollment-edit-id">
-
                 <div class="form-group">
                     <label for="enrollment-provider">Provider *</label>
                     <select id="enrollment-provider" required>
                         <option value="">Select Provider</option>
                     </select>
                 </div>
-
                 <div class="form-group">
                     <label for="enrollment-payer">Payer *</label>
                     <select id="enrollment-payer" required>
                         <option value="">Select Payer</option>
                     </select>
                 </div>
-
                 <div class="form-group">
                     <label for="enrollment-application-date">Application Date *</label>
                     <input type="date" id="enrollment-application-date" required>
                 </div>
-
-                <div class="form-group">
-                    <label for="enrollment-effective-date">Effective Date</label>
-                    <input type="date" id="enrollment-effective-date">
-                </div>
-
                 <div class="form-group">
                     <label for="enrollment-status">Status *</label>
                     <select id="enrollment-status" required>
@@ -501,17 +458,97 @@
                         <option value="In Progress">In Progress</option>
                         <option value="Approved">Approved</option>
                         <option value="Denied">Denied</option>
-                        <option value="Expired">Expired</option>
                     </select>
                 </div>
-
-                <div class="form-group">
-                    <label for="enrollment-notes">Notes</label>
-                    <textarea id="enrollment-notes" rows="3"></textarea>
-                </div>
-
                 <div class="modal-actions">
                     <button type="button" class="btn btn-secondary" onclick="closeEnrollmentModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Payer Modal -->
+    <div id="payer-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="payer-modal-title">Add Payer</h2>
+                <span class="close" onclick="closePayerModal()">&times;</span>
+            </div>
+            <form id="payer-form" onsubmit="savePayer(event)">
+                <input type="hidden" id="payer-edit-id">
+                <div class="form-group">
+                    <label for="payer-name">Payer Name *</label>
+                    <input type="text" id="payer-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="payer-type">Payer Type *</label>
+                    <select id="payer-type" required>
+                        <option value="">Select Type</option>
+                        <option value="Commercial">Commercial Insurance</option>
+                        <option value="Medicare">Medicare</option>
+                        <option value="Medicaid">Medicaid</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="payer-id">Payer ID *</label>
+                    <input type="text" id="payer-id" required>
+                </div>
+                <div class="form-group">
+                    <label for="payer-status">Status *</label>
+                    <select id="payer-status" required>
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                    </select>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closePayerModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Location Modal -->
+    <div id="location-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="location-modal-title">Add Location</h2>
+                <span class="close" onclick="closeLocationModal()">&times;</span>
+            </div>
+            <form id="location-form" onsubmit="saveLocation(event)">
+                <input type="hidden" id="location-edit-id">
+                <div class="form-group">
+                    <label for="location-name">Location Name *</label>
+                    <input type="text" id="location-name" required>
+                </div>
+                <div class="form-group">
+                    <label for="location-type">Location Type *</label>
+                    <select id="location-type" required>
+                        <option value="">Select Type</option>
+                        <option value="Hospital">Hospital</option>
+                        <option value="Clinic">Clinic</option>
+                        <option value="Medical Office">Medical Office</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="location-address">Street Address *</label>
+                    <input type="text" id="location-address" required>
+                </div>
+                <div class="form-group">
+                    <label for="location-city">City *</label>
+                    <input type="text" id="location-city" required>
+                </div>
+                <div class="form-group">
+                    <label for="location-state">State *</label>
+                    <input type="text" id="location-state" required>
+                </div>
+                <div class="form-group">
+                    <label for="location-phone">Phone *</label>
+                    <input type="tel" id="location-phone" required>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeLocationModal()">Cancel</button>
                     <button type="submit" class="btn btn-primary">Save</button>
                 </div>
             </form>
