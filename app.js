@@ -5,16 +5,21 @@ let payers = [];
 let enrollments = [];
 let locations = [];
 let contracts = [];
+let emailNotifications = [];
 let currentUser = null;
 let selectedProvider = null;
 let selectedPayer = null;
 let contractIdentifiers = [];
+let refreshTimer = 20;
+let refreshInterval = null;
+let currentNotificationFilter = 'all';
 
 // Initialize app
 document.addEventListener('DOMContentLoaded', () => {
     checkAuth();
     loadData();
     loadContracts();
+    loadEmailNotifications();
 });
 
 // ===== AUTHENTICATION =====
@@ -99,6 +104,9 @@ function showView(viewName) {
         renderLocations();
     } else if (viewName === 'analytics') {
         renderAnalytics();
+    } else if (viewName === 'email-notifications') {
+        renderEmailNotifications();
+        startRefreshTimer();
     }
 }
 
@@ -1294,3 +1302,383 @@ function closePayerDetail() {
     document.getElementById('payers-view').classList.add('active');
     selectedPayer = null;
 }
+
+// ===== EMAIL NOTIFICATIONS =====
+function loadEmailNotifications() {
+    const storedNotifications = localStorage.getItem('pvEmailNotifications');
+    if (storedNotifications) {
+        emailNotifications = JSON.parse(storedNotifications);
+    } else {
+        // Sample notification data with various statuses
+        emailNotifications = [
+            {
+                id: 'NOTIF-001',
+                providerName: 'Dr. Sarah Johnson',
+                providerEmail: 'sarah.j@example.com',
+                credentialType: 'State Medical License',
+                daysUntilExpiration: 30,
+                sentDateTime: '2024-11-08 09:15:00',
+                status: 'Sent',
+                errorMessage: null
+            },
+            {
+                id: 'NOTIF-002',
+                providerName: 'Dr. Michael Chen',
+                providerEmail: 'michael.c@example.com',
+                credentialType: 'DEA Certificate',
+                daysUntilExpiration: 60,
+                sentDateTime: '2024-11-08 09:20:00',
+                status: 'Sent',
+                errorMessage: null
+            },
+            {
+                id: 'NOTIF-003',
+                providerName: 'Dr. Emily Davis',
+                providerEmail: null,
+                credentialType: 'Board Certification',
+                daysUntilExpiration: 15,
+                sentDateTime: null,
+                status: 'No Email',
+                errorMessage: 'Provider email not on file'
+            },
+            {
+                id: 'NOTIF-004',
+                providerName: 'Dr. Robert Wilson',
+                providerEmail: 'robert.w@invalid-domain.xyz',
+                credentialType: 'Malpractice Insurance',
+                daysUntilExpiration: 45,
+                sentDateTime: '2024-11-08 09:25:00',
+                status: 'Failed',
+                errorMessage: 'SMTP Error: Invalid email address'
+            },
+            {
+                id: 'NOTIF-005',
+                providerName: 'Dr. Jennifer Martinez',
+                providerEmail: 'jennifer.m@example.com',
+                credentialType: 'CPR Certification',
+                daysUntilExpiration: 20,
+                sentDateTime: null,
+                status: 'Pending',
+                errorMessage: null
+            },
+            {
+                id: 'NOTIF-006',
+                providerName: 'Dr. David Lee',
+                providerEmail: 'david.lee@example.com',
+                credentialType: 'State Medical License',
+                daysUntilExpiration: 25,
+                sentDateTime: '2024-11-08 10:00:00',
+                status: 'Sent',
+                errorMessage: null
+            },
+            {
+                id: 'NOTIF-007',
+                providerName: 'Dr. Lisa Anderson',
+                providerEmail: 'lisa.anderson@bounced.com',
+                credentialType: 'DEA Certificate',
+                daysUntilExpiration: 35,
+                sentDateTime: '2024-11-08 10:05:00',
+                status: 'Failed',
+                errorMessage: 'Email bounced - mailbox full'
+            },
+            {
+                id: 'NOTIF-008',
+                providerName: 'Dr. James Thompson',
+                providerEmail: 'james.t@example.com',
+                credentialType: 'Malpractice Insurance',
+                daysUntilExpiration: 10,
+                sentDateTime: null,
+                status: 'Pending',
+                errorMessage: null
+            },
+            {
+                id: 'NOTIF-009',
+                providerName: 'Dr. Patricia Garcia',
+                providerEmail: null,
+                credentialType: 'Board Certification',
+                daysUntilExpiration: 40,
+                sentDateTime: null,
+                status: 'No Email',
+                errorMessage: 'Provider email not on file'
+            },
+            {
+                id: 'NOTIF-010',
+                providerName: 'Dr. Christopher Brown',
+                providerEmail: 'christopher.b@example.com',
+                credentialType: 'ACLS Certification',
+                daysUntilExpiration: 55,
+                sentDateTime: '2024-11-08 10:30:00',
+                status: 'Sent',
+                errorMessage: null
+            }
+        ];
+        saveEmailNotifications();
+    }
+}
+
+function saveEmailNotifications() {
+    localStorage.setItem('pvEmailNotifications', JSON.stringify(emailNotifications));
+}
+
+function renderEmailNotifications() {
+    updateNotificationStats();
+    renderNotificationsTable();
+}
+
+function updateNotificationStats() {
+    const total = emailNotifications.length;
+    const sent = emailNotifications.filter(n => n.status === 'Sent').length;
+    const pending = emailNotifications.filter(n => n.status === 'Pending').length;
+    const failed = emailNotifications.filter(n => n.status === 'Failed').length;
+    const noEmail = emailNotifications.filter(n => n.status === 'No Email').length;
+
+    document.getElementById('total-notifications').textContent = total;
+    document.getElementById('sent-notifications').textContent = sent;
+    document.getElementById('pending-notifications').textContent = pending;
+    document.getElementById('failed-notifications').textContent = failed;
+    document.getElementById('noemail-notifications').textContent = noEmail;
+}
+
+function renderNotificationsTable() {
+    const tbody = document.getElementById('notifications-tbody');
+    if (!tbody) return;
+
+    let filteredNotifications = emailNotifications;
+
+    // Apply status filter
+    if (currentNotificationFilter !== 'all') {
+        filteredNotifications = emailNotifications.filter(n => n.status === currentNotificationFilter);
+    }
+
+    // Apply search filter
+    const searchTerm = document.getElementById('notification-search')?.value.toLowerCase() || '';
+    if (searchTerm) {
+        filteredNotifications = filteredNotifications.filter(n =>
+            n.providerName.toLowerCase().includes(searchTerm) ||
+            (n.providerEmail && n.providerEmail.toLowerCase().includes(searchTerm))
+        );
+    }
+
+    if (filteredNotifications.length === 0) {
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="7" style="text-align: center; padding: 3rem; color: #94a3b8;">
+                    No notifications found matching your criteria.
+                </td>
+            </tr>
+        `;
+        return;
+    }
+
+    tbody.innerHTML = filteredNotifications.map(notification => {
+        let statusBadgeClass = 'status-badge ';
+        if (notification.status === 'Sent') {
+            statusBadgeClass += 'status-active';
+        } else if (notification.status === 'Pending') {
+            statusBadgeClass += 'status-pending';
+        } else if (notification.status === 'Failed') {
+            statusBadgeClass += 'status-expired';
+        } else if (notification.status === 'No Email') {
+            statusBadgeClass += 'status-inactive';
+        }
+
+        return `
+            <tr>
+                <td>
+                    <div style="font-weight: 500; color: #1e293b;">${notification.providerName}</div>
+                </td>
+                <td>
+                    ${notification.providerEmail ?
+                        `<span style="color: #64748b;">${notification.providerEmail}</span>` :
+                        `<span style="color: #ef4444; font-style: italic;">No email on file</span>`
+                    }
+                </td>
+                <td>${notification.credentialType}</td>
+                <td>
+                    <div style="font-weight: 500; color: ${notification.daysUntilExpiration <= 15 ? '#ef4444' : notification.daysUntilExpiration <= 30 ? '#f97316' : '#64748b'};">
+                        ${notification.daysUntilExpiration} days
+                    </div>
+                </td>
+                <td>
+                    ${notification.sentDateTime ?
+                        `<span style="font-size: 0.875rem; color: #64748b;">${notification.sentDateTime}</span>` :
+                        `<span style="color: #94a3b8; font-style: italic;">Not sent</span>`
+                    }
+                </td>
+                <td>
+                    <span class="${statusBadgeClass}">${notification.status}</span>
+                    ${notification.errorMessage ? `
+                        <div style="font-size: 0.75rem; color: #ef4444; margin-top: 0.25rem;" title="${notification.errorMessage}">
+                            ${notification.errorMessage.substring(0, 30)}${notification.errorMessage.length > 30 ? '...' : ''}
+                        </div>
+                    ` : ''}
+                </td>
+                <td>
+                    <div style="display: flex; gap: 0.5rem;">
+                        ${notification.status === 'Failed' || notification.status === 'Pending' ?
+                            `<button class="btn btn-primary btn-small" onclick="retryNotification('${notification.id}')">Retry</button>` :
+                            ''
+                        }
+                        <button class="btn btn-secondary btn-small" onclick="viewNotificationDetails('${notification.id}')">Details</button>
+                    </div>
+                </td>
+            </tr>
+        `;
+    }).join('');
+}
+
+function filterNotifications() {
+    renderNotificationsTable();
+}
+
+function filterNotificationsByStatus(status) {
+    currentNotificationFilter = status;
+
+    // Update active button
+    document.querySelectorAll('#email-notifications-view .filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    event.target.classList.add('active');
+
+    renderNotificationsTable();
+}
+
+function runEmailCheck() {
+    // Simulate running an email check by updating pending notifications
+    const pendingNotifications = emailNotifications.filter(n => n.status === 'Pending');
+
+    pendingNotifications.forEach(notification => {
+        // Simulate sending - 80% success rate
+        if (Math.random() > 0.2) {
+            notification.status = 'Sent';
+            notification.sentDateTime = new Date().toISOString().replace('T', ' ').substring(0, 19);
+        } else {
+            notification.status = 'Failed';
+            notification.errorMessage = 'SMTP connection timeout';
+            notification.sentDateTime = new Date().toISOString().replace('T', ' ').substring(0, 19);
+        }
+    });
+
+    saveEmailNotifications();
+    renderEmailNotifications();
+
+    // Reset timer
+    resetRefreshTimer();
+
+    // Show feedback
+    alert(`Email check complete! Processed ${pendingNotifications.length} pending notification(s).`);
+}
+
+function retryNotification(notificationId) {
+    const notification = emailNotifications.find(n => n.id === notificationId);
+    if (!notification) return;
+
+    // Simulate retry - 70% success rate
+    if (Math.random() > 0.3) {
+        notification.status = 'Sent';
+        notification.sentDateTime = new Date().toISOString().replace('T', ' ').substring(0, 19);
+        notification.errorMessage = null;
+        alert('Email sent successfully!');
+    } else {
+        notification.status = 'Failed';
+        notification.errorMessage = 'Retry failed - SMTP server unreachable';
+        notification.sentDateTime = new Date().toISOString().replace('T', ' ').substring(0, 19);
+        alert('Retry failed. Please check email configuration.');
+    }
+
+    saveEmailNotifications();
+    renderEmailNotifications();
+}
+
+function viewNotificationDetails(notificationId) {
+    const notification = emailNotifications.find(n => n.id === notificationId);
+    if (!notification) return;
+
+    const details = `
+Notification Details:
+━━━━━━━━━━━━━━━━━━━━
+Provider: ${notification.providerName}
+Email: ${notification.providerEmail || 'Not on file'}
+Credential: ${notification.credentialType}
+Days Until Expiration: ${notification.daysUntilExpiration}
+Status: ${notification.status}
+Sent: ${notification.sentDateTime || 'Not sent'}
+${notification.errorMessage ? `Error: ${notification.errorMessage}` : ''}
+    `.trim();
+
+    alert(details);
+}
+
+function exportNotificationsToCSV() {
+    const headers = ['Provider Name', 'Email', 'Credential Type', 'Days Until Expiration', 'Sent Date/Time', 'Status', 'Error Message'];
+    const rows = emailNotifications.map(n => [
+        n.providerName,
+        n.providerEmail || 'No email',
+        n.credentialType,
+        n.daysUntilExpiration,
+        n.sentDateTime || 'Not sent',
+        n.status,
+        n.errorMessage || ''
+    ]);
+
+    let csvContent = headers.join(',') + '\n';
+    rows.forEach(row => {
+        csvContent += row.map(cell => `"${cell}"`).join(',') + '\n';
+    });
+
+    // Create download link
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `email-notifications-${new Date().toISOString().split('T')[0]}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+// Auto-refresh timer
+function startRefreshTimer() {
+    // Clear any existing interval
+    if (refreshInterval) {
+        clearInterval(refreshInterval);
+    }
+
+    refreshTimer = 20;
+    updateTimerDisplay();
+
+    refreshInterval = setInterval(() => {
+        refreshTimer--;
+        updateTimerDisplay();
+
+        if (refreshTimer <= 0) {
+            resetRefreshTimer();
+            // Auto-refresh the data
+            renderEmailNotifications();
+        }
+    }, 1000);
+}
+
+function resetRefreshTimer() {
+    refreshTimer = 20;
+    updateTimerDisplay();
+}
+
+function updateTimerDisplay() {
+    const timerElement = document.getElementById('refresh-timer');
+    if (timerElement) {
+        timerElement.textContent = `${refreshTimer}s`;
+    }
+}
+
+// Clean up timer when leaving the view
+const originalShowView = showView;
+showView = function(viewName) {
+    // Clear refresh timer when leaving email notifications view
+    if (viewName !== 'email-notifications' && refreshInterval) {
+        clearInterval(refreshInterval);
+        refreshInterval = null;
+    }
+    originalShowView(viewName);
+};

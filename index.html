@@ -113,6 +113,13 @@
                     </svg>
                     <span>Analytics</span>
                 </button>
+                <button class="nav-item" onclick="showView('email-notifications')" data-view="email-notifications">
+                    <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                    </svg>
+                    <span>Email Notifications</span>
+                </button>
                 <button class="nav-item" onclick="showView('settings')" data-view="settings">
                     <svg class="nav-icon" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <circle cx="12" cy="12" r="3"></circle>
@@ -369,6 +376,121 @@
                     <button class="btn btn-primary" onclick="showLocationModal()">Add Location</button>
                 </div>
                 <div class="locations-grid" id="locations-list"></div>
+            </div>
+
+            <div id="email-notifications-view" class="view">
+                <div class="page-header">
+                    <div>
+                        <h1>Email Notifications</h1>
+                        <p class="page-subtitle">Monitor automated credential expiration notifications and email delivery status</p>
+                    </div>
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem 1rem; background: #f1f5f9; border-radius: 8px;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                            <span style="font-size: 0.875rem; color: #64748b;">Next check in: <span id="refresh-timer" style="font-weight: 600; color: #1e293b;">20s</span></span>
+                        </div>
+                        <button class="btn btn-primary" onclick="runEmailCheck()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="1 4 1 10 7 10"></polyline>
+                                <polyline points="23 20 23 14 17 14"></polyline>
+                                <path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path>
+                            </svg>
+                            Run Check
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Statistics Cards -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-label">Total Notifications</span>
+                        </div>
+                        <div class="stat-value" id="total-notifications">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-label">Sent Successfully</span>
+                        </div>
+                        <div class="stat-value" style="color: #10b981;" id="sent-notifications">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-label">Pending</span>
+                        </div>
+                        <div class="stat-value" style="color: #f59e0b;" id="pending-notifications">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-label">Failed</span>
+                        </div>
+                        <div class="stat-value" style="color: #ef4444;" id="failed-notifications">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-header">
+                            <span class="stat-label">No Email on File</span>
+                        </div>
+                        <div class="stat-value" style="color: #64748b;" id="noemail-notifications">0</div>
+                    </div>
+                </div>
+
+                <!-- Notification History -->
+                <div class="expirations-section">
+                    <div class="section-header">
+                        <h2>Notification History</h2>
+                        <button class="btn btn-secondary btn-small" onclick="exportNotificationsToCSV()">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                            Export CSV
+                        </button>
+                    </div>
+
+                    <!-- Search and Filter -->
+                    <div class="filters-bar">
+                        <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem;">
+                            <div style="flex: 1; max-width: 400px; position: relative;">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="position: absolute; left: 0.75rem; top: 50%; transform: translateY(-50%); color: #94a3b8;">
+                                    <circle cx="11" cy="11" r="8"></circle>
+                                    <path d="m21 21-4.35-4.35"></path>
+                                </svg>
+                                <input type="text" id="notification-search" placeholder="Search by provider name or email..." style="width: 100%; padding: 0.75rem 0.75rem 0.75rem 2.5rem; border: 1px solid #e2e8f0; border-radius: 8px; outline: none;" oninput="filterNotifications()">
+                            </div>
+                        </div>
+                        <div class="filter-group">
+                            <button class="filter-btn active" onclick="filterNotificationsByStatus('all')">All</button>
+                            <button class="filter-btn" onclick="filterNotificationsByStatus('Sent')">Sent</button>
+                            <button class="filter-btn" onclick="filterNotificationsByStatus('Pending')">Pending</button>
+                            <button class="filter-btn" onclick="filterNotificationsByStatus('Failed')">Failed</button>
+                            <button class="filter-btn" onclick="filterNotificationsByStatus('No Email')">No Email</button>
+                        </div>
+                    </div>
+
+                    <!-- Notifications Table -->
+                    <div class="table-container">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Provider</th>
+                                    <th>Email</th>
+                                    <th>Credential Type</th>
+                                    <th>Days Until Expiration</th>
+                                    <th>Sent Date/Time</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="notifications-tbody">
+                                <!-- Will be populated by JavaScript -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
 
             <div id="settings-view" class="view">
