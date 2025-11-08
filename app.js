@@ -14,6 +14,8 @@ let selectedPayer = null;
 let contractIdentifiers = [];
 let authorizedOfficials = [];
 let dbaNames = [];
+let providerLicenses = [];
+let providerLocations = [];
 let refreshTimer = 20;
 let refreshInterval = null;
 let currentNotificationFilter = 'all';
@@ -1685,10 +1687,119 @@ function closeProviderDetail() {
     selectedProvider = null;
 }
 
+// Provider License Management
+function addProviderLicense() {
+    const list = document.getElementById('provider-licenses-list');
+    const id = Date.now();
+
+    const licenseHtml = `
+        <div id="license-${id}" style="padding: 1rem; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 0.75rem; background: #f8fafc;">
+            <div style="display: flex; justify-content: between; align-items: center; margin-bottom: 0.75rem;">
+                <h4 style="font-size: 0.9375rem; font-weight: 600; color: #1e293b; margin: 0;">License #${providerLicenses.length + 1}</h4>
+                <button type="button" onclick="removeProviderLicense(${id})" class="btn-danger btn-small" style="margin-left: auto;">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                    Remove
+                </button>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                <div class="form-group">
+                    <label style="font-size: 0.875rem; font-weight: 500; color: #64748b;">State <span style="color: #ef4444;">*</span></label>
+                    <input type="text" class="license-state" data-id="${id}" placeholder="e.g., NY" maxlength="2" style="text-transform: uppercase; padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 6px;" required />
+                </div>
+                <div class="form-group">
+                    <label style="font-size: 0.875rem; font-weight: 500; color: #64748b;">License Number <span style="color: #ef4444;">*</span></label>
+                    <input type="text" class="license-number" data-id="${id}" placeholder="License number" style="padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 6px;" required />
+                </div>
+                <div class="form-group">
+                    <label style="font-size: 0.875rem; font-weight: 500; color: #64748b;">Issue Date</label>
+                    <input type="date" class="license-issue-date" data-id="${id}" style="padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 6px;" />
+                </div>
+                <div class="form-group">
+                    <label style="font-size: 0.875rem; font-weight: 500; color: #64748b;">Expiration Date</label>
+                    <input type="date" class="license-expiration-date" data-id="${id}" style="padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 6px;" />
+                </div>
+                <div class="form-group">
+                    <label style="font-size: 0.875rem; font-weight: 500; color: #64748b;">Status</label>
+                    <select class="license-status" data-id="${id}" style="padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 6px;">
+                        <option value="active">Active</option>
+                        <option value="pending">Pending</option>
+                        <option value="expired">Expired</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label style="font-size: 0.875rem; font-weight: 500; color: #64748b;">Upload License Document</label>
+                    <input type="file" class="license-document" data-id="${id}" accept=".pdf,.jpg,.jpeg,.png" style="padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.875rem;" />
+                </div>
+            </div>
+        </div>
+    `;
+
+    if (providerLicenses.length === 0) {
+        list.innerHTML = licenseHtml;
+    } else {
+        list.insertAdjacentHTML('beforeend', licenseHtml);
+    }
+
+    providerLicenses.push({ id, state: '', licenseNumber: '', issueDate: '', expirationDate: '', status: 'active', document: null });
+}
+
+function removeProviderLicense(id) {
+    const element = document.getElementById(`license-${id}`);
+    if (element) {
+        element.remove();
+    }
+    providerLicenses = providerLicenses.filter(item => item.id !== id);
+
+    if (providerLicenses.length === 0) {
+        const list = document.getElementById('provider-licenses-list');
+        list.innerHTML = `
+            <p style="text-align: center; padding: 1.5rem; color: #94a3b8; font-size: 0.875rem; border: 1px dashed #e2e8f0; border-radius: 8px;">
+                No licenses added. Click "Add License" to add state medical licenses.
+            </p>
+        `;
+    }
+}
+
+function getProviderLicenses() {
+    return providerLicenses.map(license => {
+        const state = document.querySelector(`.license-state[data-id="${license.id}"]`)?.value || '';
+        const licenseNumber = document.querySelector(`.license-number[data-id="${license.id}"]`)?.value || '';
+        const issueDate = document.querySelector(`.license-issue-date[data-id="${license.id}"]`)?.value || '';
+        const expirationDate = document.querySelector(`.license-expiration-date[data-id="${license.id}"]`)?.value || '';
+        const status = document.querySelector(`.license-status[data-id="${license.id}"]`)?.value || 'active';
+        const documentInput = document.querySelector(`.license-document[data-id="${license.id}"]`);
+        const document = documentInput?.files?.[0]?.name || null;
+
+        return {
+            id: license.id,
+            name: `State Medical License (${state})`,
+            state,
+            number: licenseNumber,
+            issueDate,
+            expiration: expirationDate,
+            status,
+            documents: document ? [{ name: document, expires: expirationDate }] : []
+        };
+    });
+}
+
 function showProviderModal() {
     document.getElementById('provider-modal-title').textContent = 'Add Provider';
     document.getElementById('provider-form').reset();
     document.getElementById('provider-edit-id').value = '';
+
+    // Reset licenses
+    providerLicenses = [];
+    const list = document.getElementById('provider-licenses-list');
+    list.innerHTML = `
+        <p style="text-align: center; padding: 1.5rem; color: #94a3b8; font-size: 0.875rem; border: 1px dashed #e2e8f0; border-radius: 8px;">
+            No licenses added. Click "Add License" to add state medical licenses.
+        </p>
+    `;
+
     document.getElementById('provider-modal').classList.add('active');
 }
 
@@ -1702,25 +1813,36 @@ function saveProvider(event) {
     const id = document.getElementById('provider-edit-id').value;
     const firstName = document.getElementById('provider-first-name').value;
     const lastName = document.getElementById('provider-last-name').value;
+    const licenses = getProviderLicenses();
 
     const providerData = {
         id: id || `PROV-${String(providers.length + 1).padStart(3, '0')}`,
         firstName: firstName,
         lastName: lastName,
-        name: `${firstName} ${lastName}`, // Keep for backwards compatibility
+        name: `Dr. ${firstName} ${lastName}`, // Keep for backwards compatibility
         npi: document.getElementById('provider-npi').value,
         specialty: document.getElementById('provider-specialty').value,
         email: document.getElementById('provider-email').value,
         phone: document.getElementById('provider-phone').value,
         status: document.getElementById('provider-status').value,
-        organizationId: currentOrganization ? currentOrganization.id : null
+        organizationId: currentOrganization ? currentOrganization.id : null,
+        licenses: licenses,
+        archivedLicenses: [],
+        payerEnrollments: [],
+        documents: [],
+        archivedDocuments: []
     };
 
     if (id) {
         const index = providers.findIndex(p => p.id === id);
         if (index !== -1) {
-            // Preserve existing organizationId if editing
-            providerData.organizationId = providers[index].organizationId || providerData.organizationId;
+            // Preserve existing data when editing
+            const existingProvider = providers[index];
+            providerData.organizationId = existingProvider.organizationId || providerData.organizationId;
+            providerData.archivedLicenses = existingProvider.archivedLicenses || [];
+            providerData.payerEnrollments = existingProvider.payerEnrollments || [];
+            providerData.documents = existingProvider.documents || [];
+            providerData.archivedDocuments = existingProvider.archivedDocuments || [];
             providers[index] = providerData;
         }
     } else {
@@ -1745,7 +1867,7 @@ function editProvider(id) {
         document.getElementById('provider-last-name').value = provider.lastName;
     } else if (provider.name) {
         // Split the old name format
-        const nameParts = provider.name.split(' ');
+        const nameParts = provider.name.split(' ').filter(part => part !== 'Dr.');
         document.getElementById('provider-first-name').value = nameParts[0] || '';
         document.getElementById('provider-last-name').value = nameParts.slice(1).join(' ') || '';
     }
@@ -1755,6 +1877,70 @@ function editProvider(id) {
     document.getElementById('provider-email').value = provider.email;
     document.getElementById('provider-phone').value = provider.phone;
     document.getElementById('provider-status').value = provider.status;
+
+    // Populate licenses
+    providerLicenses = [];
+    const list = document.getElementById('provider-licenses-list');
+    list.innerHTML = '';
+
+    if (provider.licenses && provider.licenses.length > 0) {
+        provider.licenses.forEach(license => {
+            const licenseId = Date.now() + Math.random();
+            providerLicenses.push({ id: licenseId });
+
+            list.insertAdjacentHTML('beforeend', `
+                <div id="license-${licenseId}" style="padding: 1rem; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 0.75rem; background: #f8fafc;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem;">
+                        <h4 style="font-size: 0.9375rem; font-weight: 600; color: #1e293b; margin: 0;">License #${providerLicenses.length}</h4>
+                        <button type="button" onclick="removeProviderLicense(${licenseId})" class="btn-danger btn-small">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                            Remove
+                        </button>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem;">
+                        <div class="form-group">
+                            <label style="font-size: 0.875rem; font-weight: 500; color: #64748b;">State <span style="color: #ef4444;">*</span></label>
+                            <input type="text" class="license-state" data-id="${licenseId}" value="${license.state || ''}" placeholder="e.g., NY" maxlength="2" style="text-transform: uppercase; padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 6px;" required />
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 0.875rem; font-weight: 500; color: #64748b;">License Number <span style="color: #ef4444;">*</span></label>
+                            <input type="text" class="license-number" data-id="${licenseId}" value="${license.number || ''}" placeholder="License number" style="padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 6px;" required />
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 0.875rem; font-weight: 500; color: #64748b;">Issue Date</label>
+                            <input type="date" class="license-issue-date" data-id="${licenseId}" value="${license.issueDate || ''}" style="padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 6px;" />
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 0.875rem; font-weight: 500; color: #64748b;">Expiration Date</label>
+                            <input type="date" class="license-expiration-date" data-id="${licenseId}" value="${license.expiration || ''}" style="padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 6px;" />
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 0.875rem; font-weight: 500; color: #64748b;">Status</label>
+                            <select class="license-status" data-id="${licenseId}" style="padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 6px;">
+                                <option value="active" ${license.status === 'active' ? 'selected' : ''}>Active</option>
+                                <option value="pending" ${license.status === 'pending' ? 'selected' : ''}>Pending</option>
+                                <option value="expired" ${license.status === 'expired' ? 'selected' : ''}>Expired</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label style="font-size: 0.875rem; font-weight: 500; color: #64748b;">Upload License Document</label>
+                            <input type="file" class="license-document" data-id="${licenseId}" accept=".pdf,.jpg,.jpeg,.png" style="padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.875rem;" />
+                            ${license.documents && license.documents.length > 0 ? `<p style="font-size: 0.75rem; color: #64748b; margin-top: 0.25rem;">Current: ${license.documents[0].name}</p>` : ''}
+                        </div>
+                    </div>
+                </div>
+            `);
+        });
+    } else {
+        list.innerHTML = `
+            <p style="text-align: center; padding: 1.5rem; color: #94a3b8; font-size: 0.875rem; border: 1px dashed #e2e8f0; border-radius: 8px;">
+                No licenses added. Click "Add License" to add state medical licenses.
+            </p>
+        `;
+    }
 
     document.getElementById('provider-modal').classList.add('active');
 }

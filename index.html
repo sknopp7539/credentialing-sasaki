@@ -591,50 +591,87 @@
     <!-- Modals (reusing existing modals with minor updates) -->
     <!-- Provider Modal -->
     <div id="provider-modal" class="modal">
-        <div class="modal-content">
+        <div class="modal-content" style="max-width: 900px; max-height: 90vh; overflow-y: auto;">
             <div class="modal-header">
-                <h2 id="provider-modal-title">Add Provider</h2>
+                <div>
+                    <h2 id="provider-modal-title">Add Provider</h2>
+                    <p style="font-size: 0.875rem; color: #64748b; margin-top: 0.25rem;">
+                        Add comprehensive provider information including licenses and credentials
+                    </p>
+                </div>
                 <span class="close" onclick="closeProviderModal()">&times;</span>
             </div>
             <form id="provider-form" onsubmit="saveProvider(event)">
                 <input type="hidden" id="provider-edit-id">
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                    <div class="form-group">
-                        <label for="provider-first-name">First Name <span style="color: #ef4444;">*</span></label>
-                        <input type="text" id="provider-first-name" required placeholder="e.g., Sarah">
+
+                <!-- Basic Information -->
+                <div style="margin-bottom: 1.5rem;">
+                    <h3 style="font-size: 1.125rem; font-weight: 600; color: #1e293b; margin-bottom: 1rem;">Basic Information</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label for="provider-first-name">First Name <span style="color: #ef4444;">*</span></label>
+                            <input type="text" id="provider-first-name" required placeholder="e.g., Sarah">
+                        </div>
+                        <div class="form-group">
+                            <label for="provider-last-name">Last Name <span style="color: #ef4444;">*</span></label>
+                            <input type="text" id="provider-last-name" required placeholder="e.g., Johnson">
+                        </div>
+                        <div class="form-group">
+                            <label for="provider-npi">NPI Number <span style="color: #ef4444;">*</span></label>
+                            <input type="text" id="provider-npi" required placeholder="10-digit NPI">
+                        </div>
+                        <div class="form-group">
+                            <label for="provider-specialty">Specialty <span style="color: #ef4444;">*</span></label>
+                            <input type="text" id="provider-specialty" required placeholder="e.g., Family Medicine">
+                        </div>
+                        <div class="form-group">
+                            <label for="provider-email">Email <span style="color: #ef4444;">*</span></label>
+                            <input type="email" id="provider-email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="provider-phone">Phone <span style="color: #ef4444;">*</span></label>
+                            <input type="tel" id="provider-phone" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="provider-status">Status <span style="color: #ef4444;">*</span></label>
+                            <select id="provider-status" required>
+                                <option value="Active">Active</option>
+                                <option value="Pending">Pending</option>
+                                <option value="Inactive">Inactive</option>
+                            </select>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label for="provider-last-name">Last Name <span style="color: #ef4444;">*</span></label>
-                        <input type="text" id="provider-last-name" required placeholder="e.g., Johnson">
+                </div>
+
+                <!-- State Licenses -->
+                <div style="margin-bottom: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 style="font-size: 1.125rem; font-weight: 600; color: #1e293b; margin: 0;">State Licenses</h3>
+                        <button type="button" onclick="addProviderLicense()" class="btn btn-secondary btn-small">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            Add License
+                        </button>
+                    </div>
+                    <div id="provider-licenses-list">
+                        <p style="text-align: center; padding: 1.5rem; color: #94a3b8; font-size: 0.875rem; border: 1px dashed #e2e8f0; border-radius: 8px;">
+                            No licenses added. Click "Add License" to add state medical licenses.
+                        </p>
                     </div>
                 </div>
-                <div class="form-group">
-                    <label for="provider-npi">NPI Number *</label>
-                    <input type="text" id="provider-npi" required placeholder="10-digit NPI">
-                </div>
-                <div class="form-group">
-                    <label for="provider-specialty">Specialty *</label>
-                    <input type="text" id="provider-specialty" required>
-                </div>
-                <div class="form-group">
-                    <label for="provider-email">Email *</label>
-                    <input type="email" id="provider-email" required>
-                </div>
-                <div class="form-group">
-                    <label for="provider-phone">Phone *</label>
-                    <input type="tel" id="provider-phone" required>
-                </div>
-                <div class="form-group">
-                    <label for="provider-status">Status *</label>
-                    <select id="provider-status" required>
-                        <option value="Active">Active</option>
-                        <option value="Pending">Pending</option>
-                        <option value="Inactive">Inactive</option>
-                    </select>
-                </div>
+
                 <div class="modal-actions">
                     <button type="button" class="btn btn-secondary" onclick="closeProviderModal()">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Save</button>
+                    <button type="submit" class="btn btn-primary">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.5rem;">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                            <polyline points="7 3 7 8 15 8"></polyline>
+                        </svg>
+                        Save Provider
+                    </button>
                 </div>
             </form>
         </div>
