@@ -123,27 +123,152 @@ function loadData() {
                 name: 'Dr. Sarah Johnson',
                 specialty: 'Family Medicine',
                 npi: '1234567890',
+                taxId: '12-3456789',
                 email: 'sarah.j@example.com',
                 phone: '(555) 123-4567',
-                status: 'Active'
+                address: '123 Medical Plaza',
+                city: 'New York',
+                state: 'NY',
+                zipCode: '10001',
+                status: 'Active',
+                licenses: [
+                    {
+                        name: 'State Medical License (NY)',
+                        status: 'active',
+                        number: 'NY-12345',
+                        issueDate: '12/31/2019',
+                        expiration: '12/6/2025',
+                        documents: [
+                            { name: 'license-scan-sarah-johnson.pdf', expires: '12/6/2025' }
+                        ]
+                    },
+                    {
+                        name: 'DEA License (NY)',
+                        status: 'active',
+                        number: 'DEA-SJ-123456',
+                        issueDate: '06/15/2020',
+                        expiration: '06/15/2026',
+                        documents: []
+                    }
+                ],
+                archivedLicenses: [],
+                payerEnrollments: [
+                    { name: 'Blue Cross Blue Shield', npi: '1234567890', status: 'Active', expirationStatus: 'Upcoming' },
+                    { name: 'Aetna', npi: '1234567890', status: 'Active', expirationStatus: 'Upcoming' },
+                    { name: 'Medicare', npi: '1234567890', status: 'Active', expirationStatus: 'Upcoming' }
+                ],
+                documents: [
+                    { id: 1, name: 'Malpractice Insurance', type: 'Insurance', expiration: '12/31/2025', uploaded: '01/15/2024', status: 'Valid' },
+                    { id: 2, name: 'Board Certification', type: 'Certificate', expiration: '06/30/2026', uploaded: '02/20/2024', status: 'Valid' }
+                ],
+                archivedDocuments: []
             },
             {
                 id: 'PROV-002',
                 name: 'Dr. Michael Chen',
                 specialty: 'Cardiology',
                 npi: '9876543210',
+                taxId: '98-7654321',
                 email: 'michael.c@example.com',
                 phone: '(555) 987-6543',
-                status: 'Active'
+                address: '456 Healthcare Ave',
+                city: 'Los Angeles',
+                state: 'CA',
+                zipCode: '90001',
+                status: 'Active',
+                licenses: [
+                    {
+                        name: 'State Medical License (CA)',
+                        status: 'active',
+                        number: 'CA-12345',
+                        issueDate: '12/31/2019',
+                        expiration: '12/6/2025',
+                        documents: [
+                            { name: 'license-scan-michael-chen.pdf', expires: '12/6/2025' }
+                        ]
+                    },
+                    {
+                        name: 'State Medical License (TX)',
+                        status: 'active',
+                        number: 'TX-67890',
+                        issueDate: '5/31/2020',
+                        expiration: '1/5/2026',
+                        documents: [
+                            { name: 'license-scan-tx.pdf', expires: '1/5/2026' }
+                        ]
+                    },
+                    {
+                        name: 'DEA License (CA)',
+                        status: 'active',
+                        number: 'DEA-TEST-123456',
+                        issueDate: '03/15/2021',
+                        expiration: '12/30/2026',
+                        documents: []
+                    }
+                ],
+                archivedLicenses: [
+                    {
+                        name: 'State Medical License (FL)',
+                        status: 'expired',
+                        number: 'FL-54321',
+                        issueDate: '06/15/2018',
+                        expiration: '06/15/2023',
+                        archivedDate: '06/16/2023',
+                        documents: [
+                            { name: 'license-scan-fl-expired.pdf', expires: '06/15/2023' }
+                        ]
+                    }
+                ],
+                payerEnrollments: [
+                    { name: 'Blue Cross Blue Shield', npi: '9876543210', status: 'Active', expirationStatus: 'Upcoming' },
+                    { name: 'Aetna', npi: '9876543210', status: 'Med Exp', expirationStatus: 'Urgent' },
+                    { name: 'Medicare', npi: '9876543210', status: 'Active', expirationStatus: 'Upcoming' },
+                    { name: 'Humana', npi: '9876543210', status: 'Expt Soon', expirationStatus: 'Warning' },
+                    { name: 'United Healthcare', npi: '9876543210', status: 'Active', expirationStatus: 'Upcoming' },
+                    { name: 'Cigna', npi: '9876543210', status: 'Active', expirationStatus: 'Upcoming' }
+                ],
+                documents: [
+                    { id: 1, name: 'Malpractice Insurance', type: 'Insurance', expiration: '12/31/2025', uploaded: '01/15/2024', status: 'Valid' },
+                    { id: 2, name: 'Board Certification - Cardiology', type: 'Certificate', expiration: '06/30/2026', uploaded: '02/20/2024', status: 'Valid' },
+                    { id: 3, name: 'CPR Certification', type: 'Certificate', expiration: '03/15/2025', uploaded: '03/10/2024', status: 'Valid' }
+                ],
+                archivedDocuments: [
+                    { id: 4, name: 'DEA Certificate (Expired)', type: 'License', expiration: '03/15/2023', uploaded: '01/10/2023', archivedDate: '03/16/2023' },
+                    { id: 5, name: 'Board Certification (Old)', type: 'Certificate', expiration: '12/31/2022', uploaded: '01/05/2022', archivedDate: '01/01/2023' }
+                ]
             },
             {
                 id: 'PROV-003',
                 name: 'Dr. Emily Davis',
                 specialty: 'Pediatrics',
                 npi: '5555555555',
+                taxId: '55-5555555',
                 email: 'emily.d@example.com',
                 phone: '(555) 555-5555',
-                status: 'Pending'
+                address: '789 Children Hospital Rd',
+                city: 'Chicago',
+                state: 'IL',
+                zipCode: '60601',
+                status: 'Pending',
+                licenses: [
+                    {
+                        name: 'State Medical License (IL)',
+                        status: 'pending',
+                        number: 'IL-99999',
+                        issueDate: '10/01/2024',
+                        expiration: '10/01/2026',
+                        documents: []
+                    }
+                ],
+                archivedLicenses: [],
+                payerEnrollments: [
+                    { name: 'Blue Cross Blue Shield', npi: '5555555555', status: 'Pending', expirationStatus: 'Pending' },
+                    { name: 'Medicare', npi: '5555555555', status: 'Pending', expirationStatus: 'Pending' }
+                ],
+                documents: [
+                    { id: 1, name: 'Malpractice Insurance', type: 'Insurance', expiration: '12/31/2025', uploaded: '09/15/2024', status: 'Valid' }
+                ],
+                archivedDocuments: []
             }
         ];
         saveProviders();
@@ -427,70 +552,591 @@ function viewProviderDetail(providerId) {
     if (!selectedProvider) return;
 
     const detailView = document.getElementById('provider-detail-view');
-    const initials = selectedProvider.name.split(' ').map(n => n[0]).join('');
+
+    // Initialize expandable sections state if not exists
+    if (!selectedProvider.expandedSections) {
+        selectedProvider.expandedSections = {
+            stateLicenses: true,
+            providerLocations: false,
+            employment: false,
+            education: false,
+            hospitalAffiliations: false,
+            credentialingContacts: false,
+            professionalLiability: false,
+            professionalReferences: false,
+            disclosures: false,
+            payerEnrollments: false,
+            credentialDocuments: false,
+            archivedDocuments: false
+        };
+    }
+
+    const licenses = selectedProvider.licenses || [];
+    const archivedLicenses = selectedProvider.archivedLicenses || [];
+    const payerEnrollments = selectedProvider.payerEnrollments || [];
+    const documents = selectedProvider.documents || [];
+    const archivedDocuments = selectedProvider.archivedDocuments || [];
 
     detailView.innerHTML = `
-        <div class="detail-header">
-            <button class="back-btn" onclick="closeProviderDetail()">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M19 12H5M12 19l-7-7 7-7"/>
-                </svg>
-                Back to Providers
-            </button>
-        </div>
-        <div class="detail-content">
-            <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 2rem;">
-                <div class="provider-avatar" style="width: 64px; height: 64px; font-size: 1.5rem;">
-                    ${initials}
-                </div>
+        <!-- Sticky Header -->
+        <div style="background: white; border-bottom: 1px solid #e2e8f0; padding: 1.5rem; position: sticky; top: 0; z-index: 10;">
+            <div class="detail-header" style="margin-bottom: 1rem;">
+                <button class="back-btn" onclick="closeProviderDetail()">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12H5M12 19l-7-7 7-7"/>
+                    </svg>
+                    Back to Providers
+                </button>
+            </div>
+            <div style="display: flex; align-items: center; justify-between;">
                 <div>
-                    <h1 style="font-size: 1.75rem; font-weight: 700; margin-bottom: 0.25rem;">${selectedProvider.name}</h1>
+                    <h1 style="font-size: 1.75rem; font-weight: 700; margin-bottom: 0.25rem; color: #1e293b;">${selectedProvider.name}</h1>
                     <p style="color: #64748b; font-size: 1.125rem;">${selectedProvider.specialty}</p>
                 </div>
-                <span class="status-badge status-${selectedProvider.status.toLowerCase()}" style="margin-left: auto;">
+                <span class="status-badge status-${selectedProvider.status.toLowerCase()}" style="padding: 0.5rem 1rem; font-size: 0.875rem;">
                     ${selectedProvider.status}
                 </span>
             </div>
+        </div>
 
-            <div class="info-grid">
-                <div class="info-card">
-                    <h3>Contact Information</h3>
-                    <div class="info-field">
-                        <div class="info-label">Email</div>
-                        <div class="info-value">${selectedProvider.email}</div>
+        <div class="detail-content" style="padding: 1.5rem;">
+            <!-- Fixed Information Cards Grid -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem;">
+                <!-- Contact Information Card -->
+                <div class="info-card" style="background: white; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 1.5rem;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #475569;">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                        <h2 style="font-size: 1rem; font-weight: 600; color: #1e293b;">Contact Information</h2>
                     </div>
-                    <div class="info-field">
-                        <div class="info-label">Phone</div>
-                        <div class="info-value">${selectedProvider.phone}</div>
-                    </div>
-                    <div class="info-field">
-                        <div class="info-label">NPI Number</div>
-                        <div class="info-value">${selectedProvider.npi}</div>
+                    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                        <div style="display: flex; align-items: center; gap: 0.5rem; color: #475569;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #94a3b8;">
+                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                                <polyline points="22,6 12,13 2,6"></polyline>
+                            </svg>
+                            <span style="font-size: 0.875rem;">${selectedProvider.email}</span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 0.5rem; color: #475569;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #94a3b8;">
+                                <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                            </svg>
+                            <span style="font-size: 0.875rem;">${selectedProvider.phone}</span>
+                        </div>
+                        ${selectedProvider.address ? `
+                        <div style="display: flex; align-items: start; gap: 0.5rem; color: #475569;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #94a3b8; margin-top: 2px;">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                <circle cx="12" cy="10" r="3"></circle>
+                            </svg>
+                            <div style="font-size: 0.875rem;">
+                                <div>${selectedProvider.address}</div>
+                                <div>${selectedProvider.city}, ${selectedProvider.state} ${selectedProvider.zipCode}</div>
+                            </div>
+                        </div>
+                        ` : ''}
                     </div>
                 </div>
 
-                <div class="info-card">
-                    <h3>Professional Information</h3>
-                    <div class="info-field">
-                        <div class="info-label">Specialty</div>
-                        <div class="info-value">${selectedProvider.specialty}</div>
+                <!-- Professional Information Card -->
+                <div class="info-card" style="background: white; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.1); padding: 1.5rem;">
+                    <div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1rem;">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #475569;">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                            <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
+                        <h2 style="font-size: 1rem; font-weight: 600; color: #1e293b;">Professional Information</h2>
                     </div>
-                    <div class="info-field">
-                        <div class="info-label">Provider ID</div>
-                        <div class="info-value">${selectedProvider.id}</div>
+                    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                        <div>
+                            <div style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">NPI Number</div>
+                            <div style="font-size: 0.875rem; color: #1e293b; font-weight: 500; margin-top: 0.25rem;">${selectedProvider.npi}</div>
+                        </div>
+                        ${selectedProvider.taxId ? `
+                        <div>
+                            <div style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">Tax ID</div>
+                            <div style="font-size: 0.875rem; color: #1e293b; font-weight: 500; margin-top: 0.25rem;">${selectedProvider.taxId}</div>
+                        </div>
+                        ` : ''}
+                        <div>
+                            <div style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">Specialty</div>
+                            <div style="font-size: 0.875rem; color: #1e293b; font-weight: 500; margin-top: 0.25rem;">${selectedProvider.specialty}</div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div class="coming-soon" style="margin-top: 2rem;">
-                Additional provider details (licenses, documents, etc.) coming soon...
-            </div>
+            ${renderExpandableSection('stateLicenses', 'State Licenses', licenses.length, `
+                ${licenses.length > 0 ? licenses.map((license, idx) => renderLicenseCard(license, idx, false)).join('') : `
+                    <div style="text-align: center; padding: 3rem; color: #94a3b8;">
+                        <div style="width: 64px; height: 64px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-center; margin: 0 auto 1rem;">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #94a3b8;">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                            </svg>
+                        </div>
+                        <p style="margin-bottom: 0.5rem; font-weight: 500;">No licenses found</p>
+                        <p style="font-size: 0.875rem;">Add state medical licenses, DEA licenses, or other credentials.</p>
+                    </div>
+                `}
+            `, 'Add License')}
+
+            ${renderExpandableSection('payerEnrollments', 'Payer Enrollments', payerEnrollments.length, `
+                ${payerEnrollments.length > 0 ? payerEnrollments.map((payer, idx) => renderPayerRow(payer, idx + 1)).join('') : `
+                    <div style="text-align: center; padding: 3rem; color: #94a3b8;">
+                        <p style="margin-bottom: 0.5rem; font-weight: 500;">No payer enrollments found</p>
+                        <p style="font-size: 0.875rem;">Add insurance payer enrollments for this provider.</p>
+                    </div>
+                `}
+            `, 'Add Enrollment')}
+
+            ${renderExpandableSection('credentialDocuments', 'Credential Documents', documents.length, `
+                ${documents.length > 0 ? documents.map(doc => renderDocumentRow(doc)).join('') : `
+                    <div style="text-align: center; padding: 3rem; color: #94a3b8;">
+                        <div style="width: 64px; height: 64px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-content; margin: 0 auto 1rem;">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #94a3b8;">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                            </svg>
+                        </div>
+                        <p style="margin-bottom: 0.5rem; font-weight: 500;">No documents found</p>
+                        <p style="font-size: 0.875rem;">Upload credential documents, certificates, or insurance policies.</p>
+                    </div>
+                `}
+            `, 'Upload Document')}
+
+            <!-- Empty State Sections -->
+            ${renderExpandableSection('providerLocations', 'Provider Locations', 0, `
+                <div style="text-align: center; padding: 3rem; color: #94a3b8;">
+                    <div style="width: 64px; height: 64px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-center; margin: 0 auto 1rem;">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #94a3b8;">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                            <circle cx="12" cy="10" r="3"></circle>
+                        </svg>
+                    </div>
+                    <p style="margin-bottom: 0.5rem; font-weight: 500;">No locations found</p>
+                    <p style="font-size: 0.875rem;">Assign this provider to practice locations.</p>
+                </div>
+            `, 'Add Location')}
+
+            ${renderExpandableSection('education', 'Education & Professional Training', 0, `
+                <div style="text-align: center; padding: 3rem; color: #94a3b8;">
+                    <div style="width: 64px; height: 64px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-center; margin: 0 auto 1rem;">
+                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #94a3b8;">
+                            <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
+                            <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
+                        </svg>
+                    </div>
+                    <p style="margin-bottom: 0.5rem; font-weight: 500;">No education records found</p>
+                    <p style="font-size: 0.875rem;">Add medical school, residency, fellowship, or other training.</p>
+                </div>
+            `, 'Add Education')}
+
+            <!-- CRITICAL: Archived Documents Section -->
+            ${renderArchivedDocumentsSection(archivedLicenses, archivedDocuments)}
         </div>
     `;
 
     // Show detail view
     document.getElementById('providers-view').classList.remove('active');
     detailView.classList.add('active');
+}
+
+// Helper function to render expandable sections
+function renderExpandableSection(sectionKey, title, count, content, actionButtonText) {
+    const isExpanded = selectedProvider.expandedSections[sectionKey];
+
+    return `
+        <div style="background: white; border-radius: 12px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 1rem;">
+            <button
+                onclick="toggleProviderSection('${sectionKey}')"
+                style="width: 100%; padding: 1rem; display: flex; align-items: center; justify-between; background: none; border: none; cursor: pointer; transition: background 0.2s;"
+                onmouseover="this.style.background='#f8fafc'"
+                onmouseout="this.style.background='none'"
+            >
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #475569;">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                    </svg>
+                    <h2 style="font-size: 1rem; font-weight: 600; color: #1e293b; margin: 0;">${title}${count > 0 ? ` (${count})` : ''}</h2>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.75rem;">
+                    ${actionButtonText ? `
+                        <button
+                            onclick="event.stopPropagation(); alert('${actionButtonText} functionality coming soon')"
+                            style="padding: 0.375rem 0.75rem; font-size: 0.875rem; font-weight: 500; color: #2563eb; background: none; border: none; border-radius: 6px; cursor: pointer;"
+                            onmouseover="this.style.background='#eff6ff'"
+                            onmouseout="this.style.background='none'"
+                        >
+                            ${actionButtonText}
+                        </button>
+                    ` : ''}
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #94a3b8; transition: transform 0.2s; transform: rotate(${isExpanded ? '90' : '0'}deg);">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                </div>
+            </button>
+            ${isExpanded ? `
+                <div style="padding: 1rem; border-top: 1px solid #e2e8f0;">
+                    ${content}
+                </div>
+            ` : ''}
+        </div>
+    `;
+}
+
+// Helper function to render license card
+function renderLicenseCard(license, index, isArchived) {
+    return `
+        <div style="border-radius: 8px; padding: 1rem; margin-bottom: 0.75rem; border: 1px solid ${isArchived ? '#d1d5db' : '#e2e8f0'}; background: ${isArchived ? '#f3f4f6' : '#f8fafc'};">
+            <div style="display: flex; align-items: start; justify-between; margin-bottom: 0.75rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                    <h4 style="font-size: 0.938rem; font-weight: 500; color: #1e293b; margin: 0;">${license.name}</h4>
+                    <span style="padding: 0.125rem 0.5rem; font-size: 0.75rem; font-weight: 500; border-radius: 9999px; ${
+                        isArchived ? 'background: #9ca3af; color: white;' :
+                        license.status === 'active' ? 'background: #2563eb; color: white;' :
+                        'background: #f59e0b; color: white;'
+                    }">
+                        ${isArchived ? 'archived' : license.status}
+                    </span>
+                    ${isArchived && license.archivedDate ? `
+                        <span style="font-size: 0.75rem; color: #6b7280;">Archived: ${license.archivedDate}</span>
+                    ` : ''}
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    ${!isArchived ? `
+                        <button style="font-size: 0.875rem; color: #2563eb; background: none; border: none; cursor: pointer; font-weight: 500;" onmouseover="this.style.color='#1e40af'" onmouseout="this.style.color='#2563eb'">Edit</button>
+                        <button onclick="archiveLicense('${selectedProvider.id}', ${index})" style="font-size: 0.875rem; color: #ea580c; background: none; border: none; cursor: pointer; font-weight: 500;" onmouseover="this.style.color='#c2410c'" onmouseout="this.style.color='#ea580c'">Archive</button>
+                    ` : `
+                        <button onclick="restoreLicense('${selectedProvider.id}', ${index})" style="font-size: 0.875rem; color: #2563eb; background: none; border: none; cursor: pointer; font-weight: 500;" onmouseover="this.style.color='#1e40af'" onmouseout="this.style.color='#2563eb'">Restore</button>
+                    `}
+                </div>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 0.75rem;">
+                <div>
+                    <span style="font-size: 0.875rem; color: #64748b;">License Number: </span>
+                    <span style="font-size: 0.875rem; color: #1e293b; font-weight: 500;">${license.number}</span>
+                </div>
+                ${license.issueDate ? `
+                <div>
+                    <span style="font-size: 0.875rem; color: #64748b;">Issue Date: </span>
+                    <span style="font-size: 0.875rem; color: #1e293b; font-weight: 500;">${license.issueDate}</span>
+                </div>
+                ` : ''}
+            </div>
+            <div style="margin-bottom: 0.75rem;">
+                <span style="font-size: 0.875rem; color: #64748b;">Expiration: </span>
+                <span style="font-size: 0.875rem; font-weight: 500; color: ${isArchived ? '#dc2626' : '#1e293b'};">
+                    ${license.expiration}${isArchived ? ' (Expired)' : ''}
+                </span>
+            </div>
+            ${license.documents && license.documents.length > 0 ? `
+                <div style="margin-top: 0.75rem; padding-top: 0.75rem; border-top: 1px solid #e2e8f0;">
+                    <div style="font-size: 0.875rem; color: #475569; font-weight: 500; margin-bottom: 0.5rem;">Associated Documents:</div>
+                    ${license.documents.map(doc => `
+                        <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; margin-bottom: 0.25rem;">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #94a3b8;">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                            </svg>
+                            <a href="#" style="color: #2563eb; text-decoration: none;" onmouseover="this.style.textDecoration='underline'" onmouseout="this.style.textDecoration='none'">${doc.name}</a>
+                            <span style="color: #64748b;">• Expires: ${doc.expires}</span>
+                        </div>
+                    `).join('')}
+                </div>
+            ` : ''}
+        </div>
+    `;
+}
+
+// Helper function to render payer row
+function renderPayerRow(payer, index) {
+    return `
+        <div style="display: flex; align-items: center; justify-between; padding: 0.75rem 0; border-bottom: 1px solid #f1f5f9;">
+            <div style="display: flex; align-items: center; gap: 0.75rem; flex: 1;">
+                <div style="width: 32px; height: 32px; background: #f1f5f9; border-radius: 6px; display: flex; align-items: center; justify-center; color: #64748b; font-weight: 500; font-size: 0.875rem;">
+                    ${index}
+                </div>
+                <div style="flex: 1;">
+                    <div style="font-weight: 500; color: #1e293b; font-size: 0.938rem;">${payer.name}</div>
+                    <div style="font-size: 0.813rem; color: #64748b;">${payer.npi}</div>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                <div style="font-size: 0.875rem;">
+                    <span style="color: #64748b;">Expt:</span>
+                    <span style="font-weight: 500; color: ${
+                        payer.status === 'Med Exp' ? '#dc2626' :
+                        payer.status === 'Expt Soon' ? '#ea580c' :
+                        '#475569'
+                    };">${payer.status}</span>
+                </div>
+                <span style="padding: 0.25rem 0.75rem; font-size: 0.75rem; font-weight: 500; border-radius: 9999px; ${
+                    payer.expirationStatus === 'Upcoming' ? 'background: #d1fae5; color: #065f46;' :
+                    payer.expirationStatus === 'Urgent' ? 'background: #fee2e2; color: #991b1b;' :
+                    payer.expirationStatus === 'Warning' ? 'background: #fed7aa; color: #9a3412;' :
+                    'background: #f1f5f9; color: #475569;'
+                }">
+                    ${payer.expirationStatus}
+                </span>
+                <button style="padding: 0.25rem 0.75rem; font-size: 0.75rem; font-weight: 500; color: #2563eb; border: 1px solid #2563eb; background: none; border-radius: 6px; cursor: pointer;" onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='none'">
+                    View Details
+                </button>
+            </div>
+        </div>
+    `;
+}
+
+// Helper function to render document row
+function renderDocumentRow(doc) {
+    return `
+        <div style="display: flex; align-items: center; justify-between; padding: 0.75rem 0; border-bottom: 1px solid #f1f5f9;">
+            <div style="display: flex; align-items: center; gap: 0.75rem; flex: 1;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #94a3b8;">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                </svg>
+                <div style="flex: 1;">
+                    <div style="font-weight: 500; color: #1e293b; font-size: 0.938rem;">${doc.name}</div>
+                    <div style="font-size: 0.813rem; color: #64748b;">${doc.type}</div>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <div style="text-align: right;">
+                    <div style="font-size: 0.875rem; font-weight: 500; color: #475569;">Exp: ${doc.expiration}</div>
+                    <div style="font-size: 0.75rem; color: #94a3b8;">${doc.uploaded}</div>
+                </div>
+                <span style="padding: 0.25rem 0.5rem; font-size: 0.75rem; font-weight: 500; border-radius: 9999px; ${
+                    doc.status === 'Valid' ? 'background: #d1fae5; color: #065f46;' : 'background: #fee2e2; color: #991b1b;'
+                }">
+                    ${doc.status}
+                </span>
+                <div style="display: flex; align-items: center; gap: 0.25rem;">
+                    <button style="padding: 0.25rem; background: none; border: none; border-radius: 4px; cursor: pointer;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='none'" title="View">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #64748b;">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </button>
+                    <button style="padding: 0.25rem; background: none; border: none; border-radius: 4px; cursor: pointer;" onmouseover="this.style.background='#f1f5f9'" onmouseout="this.style.background='none'" title="Download">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #64748b;">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Helper function to render archived documents section
+function renderArchivedDocumentsSection(archivedLicenses, archivedDocuments) {
+    const totalArchived = archivedLicenses.length + archivedDocuments.length;
+    const isExpanded = selectedProvider.expandedSections['archivedDocuments'];
+
+    return `
+        <div style="background: white; border-radius: 12px; border: 1px solid #fed7aa; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 1rem;">
+            <button
+                onclick="toggleProviderSection('archivedDocuments')"
+                style="width: 100%; padding: 1rem; display: flex; align-items: center; justify-between; background: none; border: none; cursor: pointer; transition: background 0.2s;"
+                onmouseover="this.style.background='#ffedd5'"
+                onmouseout="this.style.background='none'"
+            >
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #ea580c;">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                        <polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline>
+                        <line x1="12" y1="22.08" x2="12" y2="12"></line>
+                    </svg>
+                    <h2 style="font-size: 1rem; font-weight: 600; color: #1e293b; margin: 0;">Archived Documents (${totalArchived})</h2>
+                    <span style="font-size: 0.75rem; color: #ea580c; font-weight: 500;">• Documents are never deleted, only archived</span>
+                </div>
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #94a3b8; transition: transform 0.2s; transform: rotate(${isExpanded ? '90' : '0'}deg);">
+                    <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+            </button>
+            ${isExpanded ? `
+                <div style="padding: 1rem; border-top: 1px solid #fed7aa; background: #fff7ed;">
+                    <!-- Info Banner -->
+                    <div style="margin-bottom: 1rem; padding: 0.75rem; background: #fed7aa; border: 1px solid #fdba74; border-radius: 8px;">
+                        <div style="display: flex; align-items: start; gap: 0.5rem;">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #c2410c; flex-shrink: 0; margin-top: 2px;">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="16" x2="12" y2="12"></line>
+                                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                            </svg>
+                            <div style="font-size: 0.875rem; color: #9a3412;">
+                                <p style="font-weight: 500; margin-bottom: 0.25rem;">About Archived Documents</p>
+                                <p style="margin: 0;">Documents are automatically moved here when they expire or are manually archived. Archived items are preserved permanently and can be restored at any time.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    ${archivedLicenses.length > 0 ? `
+                        <div style="margin-bottom: 1.5rem;">
+                            <h3 style="font-size: 0.875rem; font-weight: 600; color: #475569; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                </svg>
+                                Archived Licenses
+                            </h3>
+                            ${archivedLicenses.map((license, idx) => renderLicenseCard(license, idx, true)).join('')}
+                        </div>
+                    ` : ''}
+
+                    ${archivedDocuments.length > 0 ? `
+                        <div>
+                            <h3 style="font-size: 0.875rem; font-weight: 600; color: #475569; margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.5rem;">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                    <polyline points="14 2 14 8 20 8"></polyline>
+                                </svg>
+                                Archived Credential Documents
+                            </h3>
+                            ${archivedDocuments.map(doc => renderArchivedDocumentRow(doc)).join('')}
+                        </div>
+                    ` : ''}
+
+                    ${totalArchived === 0 ? `
+                        <div style="text-align: center; padding: 2rem; color: #94a3b8;">
+                            <p>No archived documents yet.</p>
+                        </div>
+                    ` : ''}
+                </div>
+            ` : ''}
+        </div>
+    `;
+}
+
+// Helper function to render archived document row
+function renderArchivedDocumentRow(doc) {
+    return `
+        <div style="display: flex; align-items: center; justify-between; padding: 0.75rem; border-bottom: 1px solid #f1f5f9; background: #f9fafb; border-radius: 6px; margin-bottom: 0.5rem;">
+            <div style="display: flex; align-items: center; gap: 0.75rem; flex: 1;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #94a3b8;">
+                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                    <polyline points="14 2 14 8 20 8"></polyline>
+                </svg>
+                <div style="flex: 1;">
+                    <div style="font-weight: 500; color: #1e293b; font-size: 0.938rem;">${doc.name}</div>
+                    <div style="font-size: 0.813rem; color: #64748b;">${doc.type} • Archived: ${doc.archivedDate}</div>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <div style="text-align: right;">
+                    <div style="font-size: 0.875rem; font-weight: 500; color: #dc2626;">Expired: ${doc.expiration}</div>
+                    <div style="font-size: 0.75rem; color: #94a3b8;">Originally uploaded: ${doc.uploaded}</div>
+                </div>
+                <span style="padding: 0.25rem 0.5rem; font-size: 0.75rem; font-weight: 500; border-radius: 9999px; background: #9ca3af; color: white;">
+                    Archived
+                </span>
+                <div style="display: flex; align-items: center; gap: 0.25rem;">
+                    <button style="padding: 0.25rem; background: none; border: none; border-radius: 4px; cursor: pointer;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='none'" title="View">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #64748b;">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </button>
+                    <button style="padding: 0.25rem; background: none; border: none; border-radius: 4px; cursor: pointer;" onmouseover="this.style.background='#e5e7eb'" onmouseout="this.style.background='none'" title="Download">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #64748b;">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                    </button>
+                    <button onclick="restoreDocument('${selectedProvider.id}', ${doc.id})" style="padding: 0.25rem; background: none; border: none; border-radius: 4px; cursor: pointer;" onmouseover="this.style.background='#dbeafe'" onmouseout="this.style.background='none'" title="Restore">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #2563eb; transform: rotate(180deg);">
+                            <polyline points="9 18 15 12 9 6"></polyline>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+// Toggle provider section
+function toggleProviderSection(sectionKey) {
+    if (selectedProvider && selectedProvider.expandedSections) {
+        selectedProvider.expandedSections[sectionKey] = !selectedProvider.expandedSections[sectionKey];
+        viewProviderDetail(selectedProvider.id);
+    }
+}
+
+// Archive license function
+function archiveLicense(providerId, licenseIndex) {
+    if (confirm('Are you sure you want to archive this license? It will be moved to archived documents and can be restored later.')) {
+        const provider = providers.find(p => p.id === providerId);
+        if (provider && provider.licenses && provider.licenses[licenseIndex]) {
+            const license = provider.licenses[licenseIndex];
+            license.archivedDate = new Date().toISOString().split('T')[0];
+
+            if (!provider.archivedLicenses) {
+                provider.archivedLicenses = [];
+            }
+            provider.archivedLicenses.push(license);
+            provider.licenses.splice(licenseIndex, 1);
+
+            saveProviders();
+            viewProviderDetail(providerId);
+        }
+    }
+}
+
+// Restore license function
+function restoreLicense(providerId, licenseIndex) {
+    if (confirm('Are you sure you want to restore this license?')) {
+        const provider = providers.find(p => p.id === providerId);
+        if (provider && provider.archivedLicenses && provider.archivedLicenses[licenseIndex]) {
+            const license = provider.archivedLicenses[licenseIndex];
+            delete license.archivedDate;
+            license.status = 'active';
+
+            if (!provider.licenses) {
+                provider.licenses = [];
+            }
+            provider.licenses.push(license);
+            provider.archivedLicenses.splice(licenseIndex, 1);
+
+            saveProviders();
+            viewProviderDetail(providerId);
+        }
+    }
+}
+
+// Restore document function
+function restoreDocument(providerId, documentId) {
+    if (confirm('Are you sure you want to restore this document?')) {
+        const provider = providers.find(p => p.id === providerId);
+        if (provider && provider.archivedDocuments) {
+            const docIndex = provider.archivedDocuments.findIndex(d => d.id === documentId);
+            if (docIndex !== -1) {
+                const document = provider.archivedDocuments[docIndex];
+                delete document.archivedDate;
+                document.status = 'Valid';
+
+                if (!provider.documents) {
+                    provider.documents = [];
+                }
+                provider.documents.push(document);
+                provider.archivedDocuments.splice(docIndex, 1);
+
+                saveProviders();
+                viewProviderDetail(providerId);
+            }
+        }
+    }
 }
 
 function closeProviderDetail() {
