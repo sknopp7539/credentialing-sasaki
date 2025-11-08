@@ -4355,7 +4355,7 @@ function loadClaims() {
             {
                 id: 'CLM-2023-045',
                 claimId: 'CLM-2023-045',
-                providerId: 'PROV-008',
+                providerId: 'PROV-003',
                 organizationId: 'ORG-002',
                 status: 'settled',
                 reserveAmount: 100000,
