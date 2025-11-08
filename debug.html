@@ -69,8 +69,12 @@
 
         <div style="margin-bottom: 2rem;">
             <button class="btn" onclick="loadData()">Refresh Data</button>
-            <button class="btn" onclick="clearProviders()">Clear All Providers</button>
+            <button class="btn" onclick="fixProviderOrganizations()">Fix Provider Organization IDs</button>
+            <button class="btn btn-danger" onclick="clearProviders()">Clear All Providers</button>
             <button class="btn" onclick="window.location.href='index.html'">Back to App</button>
+        </div>
+
+        <div id="fix-message" style="display: none; padding: 1rem; background: #dcfce7; border: 1px solid #86efac; border-radius: 6px; margin-bottom: 1rem;">
         </div>
 
         <div class="section">
@@ -145,6 +149,47 @@
                 localStorage.removeItem('pvProviders');
                 alert('All providers have been cleared. Reload the main app to see changes.');
                 loadData();
+            }
+        }
+
+        function fixProviderOrganizations() {
+            const currentOrgData = localStorage.getItem('pvCurrentOrganization');
+            if (!currentOrgData) {
+                alert('No current organization found. Please select an organization in the main app first.');
+                return;
+            }
+
+            const currentOrg = JSON.parse(currentOrgData);
+            const providersData = localStorage.getItem('pvProviders');
+
+            if (!providersData) {
+                alert('No providers found to fix.');
+                return;
+            }
+
+            const providers = JSON.parse(providersData);
+            let fixedCount = 0;
+            const fixedProviders = [];
+
+            providers.forEach(provider => {
+                if (!provider.organizationId || provider.organizationId === 'null' || provider.organizationId === null) {
+                    provider.organizationId = currentOrg.id;
+                    fixedCount++;
+                    fixedProviders.push(provider.name || `${provider.firstName} ${provider.lastName}`);
+                }
+            });
+
+            if (fixedCount > 0) {
+                localStorage.setItem('pvProviders', JSON.stringify(providers));
+                const message = `✓ Fixed ${fixedCount} provider(s) and assigned them to "${currentOrg.name}":\n${fixedProviders.join(', ')}`;
+                document.getElementById('fix-message').style.display = 'block';
+                document.getElementById('fix-message').innerHTML = '<strong>Success!</strong> ' + message.replace(/\n/g, '<br>');
+                loadData();
+                setTimeout(() => {
+                    alert('Providers fixed! Go back to the main app and refresh the page (Ctrl+Shift+R) to see the changes.');
+                }, 500);
+            } else {
+                alert('No providers needed fixing. All providers already have valid organization IDs.');
             }
         }
 
