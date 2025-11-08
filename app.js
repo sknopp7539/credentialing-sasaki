@@ -4,13 +4,17 @@ let providers = [];
 let payers = [];
 let enrollments = [];
 let locations = [];
+let contracts = [];
 let currentUser = null;
 let selectedProvider = null;
+let selectedPayer = null;
+let contractIdentifiers = [];
 
 // Initialize app
 document.addEventListener('DOMContentLoaded', () => {
     checkAuth();
     loadData();
+    loadContracts();
 });
 
 // ===== AUTHENTICATION =====
@@ -532,25 +536,30 @@ function renderPayers() {
         return;
     }
 
-    container.innerHTML = payers.map(payer => `
-        <div class="payer-card">
-            <div class="card-header">
-                <span style="font-family: monospace; color: #64748b; font-size: 0.875rem;">${payer.id}</span>
-                <span class="status-badge status-${payer.status.toLowerCase()}">${payer.status}</span>
+    container.innerHTML = payers.map(payer => {
+        const payerContracts = contracts.filter(c => c.payerId === payer.id && c.status !== 'Archived');
+        return `
+            <div class="payer-card" onclick="viewPayerDetail('${payer.id}')">
+                <div class="card-header">
+                    <span style="font-family: monospace; color: #64748b; font-size: 0.875rem;">${payer.id}</span>
+                    <span class="status-badge status-${payer.status.toLowerCase()}">${payer.status}</span>
+                </div>
+                <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem;">${payer.name}</h3>
+                <div style="background: #f1f5f9; padding: 0.375rem 0.75rem; border-radius: 6px; display: inline-block; font-size: 0.875rem; margin-bottom: 1rem;">
+                    ${payer.type}
+                </div>
+                <div style="font-size: 0.875rem; color: #64748b; margin-bottom: 0.5rem;">
+                    <div>Payer ID: <span style="font-weight: 500; color: #1e293b;">${payer.payerId}</span></div>
+                    <div>📄 ${payerContracts.length} Active Contract${payerContracts.length !== 1 ? 's' : ''}</div>
+                </div>
+                <div style="display: flex; gap: 0.5rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e2e8f0;">
+                    <button class="btn btn-primary btn-small" onclick="event.stopPropagation(); editPayer('${payer.id}')">Edit</button>
+                    <button class="btn btn-secondary btn-small" onclick="event.stopPropagation(); showContractModal('${payer.id}')">Add Contract</button>
+                    <button class="btn btn-danger btn-small" onclick="event.stopPropagation(); deletePayer('${payer.id}')">Delete</button>
+                </div>
             </div>
-            <h3 style="font-size: 1.125rem; font-weight: 600; margin-bottom: 0.5rem;">${payer.name}</h3>
-            <div style="background: #f1f5f9; padding: 0.375rem 0.75rem; border-radius: 6px; display: inline-block; font-size: 0.875rem; margin-bottom: 1rem;">
-                ${payer.type}
-            </div>
-            <div style="font-size: 0.875rem; color: #64748b;">
-                Payer ID: <span style="font-weight: 500; color: #1e293b;">${payer.payerId}</span>
-            </div>
-            <div style="display: flex; gap: 0.5rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e2e8f0;">
-                <button class="btn btn-primary btn-small" onclick="editPayer('${payer.id}')">Edit</button>
-                <button class="btn btn-danger btn-small" onclick="deletePayer('${payer.id}')">Delete</button>
-            </div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 function showPayerModal() {
@@ -833,11 +842,455 @@ function renderAnalytics() {
 
 // Close modal when clicking outside
 window.onclick = function(event) {
-    const modals = ['provider-modal', 'payer-modal', 'enrollment-modal', 'location-modal'];
+    const modals = ['provider-modal', 'payer-modal', 'enrollment-modal', 'location-modal', 'payer-contract-modal'];
     modals.forEach(modalId => {
         const modal = document.getElementById(modalId);
         if (event.target === modal) {
             modal.classList.remove('active');
         }
     });
+}
+
+// ===== PAYER CONTRACTS =====
+function loadContracts() {
+    const storedContracts = localStorage.getItem('pvContracts');
+    if (storedContracts) {
+        contracts = JSON.parse(storedContracts);
+    } else {
+        // Sample contract data
+        contracts = [
+            {
+                id: 'CONTRACT-001',
+                payerId: 'PAY-001',
+                payerName: 'Blue Cross Blue Shield',
+                contractName: 'PPO Network Agreement',
+                identifiers: [
+                    { type: 'Contract Number', value: 'BCBS-2024-001' },
+                    { type: 'Group ID', value: 'GRP-12345' }
+                ],
+                contactName: 'Jane Smith',
+                email: 'jane.smith@bcbs.com',
+                phone: '(555) 123-4567',
+                fax: '(555) 123-4568',
+                streetAddress: '123 Insurance Ave',
+                city: 'Chicago',
+                state: 'IL',
+                zipCode: '60601',
+                effectiveDate: '2024-01-01',
+                expirationDate: '2025-12-31',
+                status: 'Active',
+                website: 'https://www.bcbs.com',
+                productLines: 'HMO, PPO, Medicare Advantage',
+                feeScheduleUrl: 'https://www.bcbs.com/fee-schedule',
+                documentUrl: 'https://docs.bcbs.com/contract-2024.pdf',
+                notes: 'Annual contract with standard terms',
+                createdAt: '2024-01-15'
+            }
+        ];
+        saveContracts();
+    }
+}
+
+function saveContracts() {
+    localStorage.setItem('pvContracts', JSON.stringify(contracts));
+}
+
+// Contract Identifiers Management
+function addContractIdentifier() {
+    const list = document.getElementById('contract-identifiers-list');
+    const id = Date.now();
+
+    const identifierHtml = `
+        <div id="identifier-${id}" style="display: flex; gap: 0.75rem; align-items: start; margin-bottom: 0.75rem;">
+            <input
+                type="text"
+                placeholder="Type (e.g., Contract Number)"
+                class="identifier-type"
+                data-id="${id}"
+                style="flex: 1; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 8px; outline: none; transition: all 0.2s;"
+                onfocus="this.style.borderColor='#06b6d4'; this.style.boxShadow='0 0 0 3px rgba(6, 182, 212, 0.1)';"
+                onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';"
+            />
+            <input
+                type="text"
+                placeholder="Value"
+                class="identifier-value"
+                data-id="${id}"
+                style="flex: 1; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 8px; outline: none; transition: all 0.2s;"
+                onfocus="this.style.borderColor='#06b6d4'; this.style.boxShadow='0 0 0 3px rgba(6, 182, 212, 0.1)';"
+                onblur="this.style.borderColor='#e2e8f0'; this.style.boxShadow='none';"
+            />
+            <button
+                type="button"
+                onclick="removeContractIdentifier(${id})"
+                class="btn-danger btn-small"
+            >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+    `;
+
+    // If this is the first identifier, clear the "no identifiers" message
+    if (contractIdentifiers.length === 0) {
+        list.innerHTML = identifierHtml;
+    } else {
+        list.insertAdjacentHTML('beforeend', identifierHtml);
+    }
+
+    contractIdentifiers.push({ id, type: '', value: '' });
+}
+
+function removeContractIdentifier(id) {
+    const element = document.getElementById(`identifier-${id}`);
+    if (element) {
+        element.remove();
+    }
+    contractIdentifiers = contractIdentifiers.filter(item => item.id !== id);
+
+    // If no identifiers left, show empty message
+    if (contractIdentifiers.length === 0) {
+        const list = document.getElementById('contract-identifiers-list');
+        list.innerHTML = `
+            <p style="text-align: center; padding: 1.5rem; color: #94a3b8; font-size: 0.875rem; border: 1px dashed #e2e8f0; border-radius: 8px;">
+                No identifiers added. Click "Add Identifier" to add contract numbers, group IDs, etc.
+            </p>
+        `;
+    }
+}
+
+function getContractIdentifiers() {
+    const types = document.querySelectorAll('.identifier-type');
+    const values = document.querySelectorAll('.identifier-value');
+    const identifiers = [];
+
+    types.forEach((typeInput, index) => {
+        if (typeInput.value.trim() || values[index].value.trim()) {
+            identifiers.push({
+                type: typeInput.value.trim(),
+                value: values[index].value.trim()
+            });
+        }
+    });
+
+    return identifiers;
+}
+
+// Contract Modal Management
+function showContractModal(payerId = null) {
+    const modal = document.getElementById('payer-contract-modal');
+    const form = document.getElementById('contract-form');
+
+    form.reset();
+    document.getElementById('contract-edit-id').value = '';
+    document.getElementById('contract-modal-title').textContent = 'Add Payer Contract';
+
+    // Reset identifiers
+    contractIdentifiers = [];
+    const list = document.getElementById('contract-identifiers-list');
+    list.innerHTML = `
+        <p style="text-align: center; padding: 1.5rem; color: #94a3b8; font-size: 0.875rem; border: 1px dashed #e2e8f0; border-radius: 8px;">
+            No identifiers added. Click "Add Identifier" to add contract numbers, group IDs, etc.
+        </p>
+    `;
+
+    // If payerId is provided, pre-fill payer information
+    if (payerId) {
+        const payer = payers.find(p => p.id === payerId);
+        if (payer) {
+            document.getElementById('contract-payer-id').value = payerId;
+            document.getElementById('contract-payer-name').value = payer.name;
+        }
+    }
+
+    modal.classList.add('active');
+}
+
+function closeContractModal() {
+    document.getElementById('payer-contract-modal').classList.remove('active');
+    contractIdentifiers = [];
+}
+
+function saveContract(event) {
+    event.preventDefault();
+
+    const id = document.getElementById('contract-edit-id').value;
+    const identifiers = getContractIdentifiers();
+
+    // Handle file upload
+    const fileInput = document.getElementById('contract-document');
+    let documentFile = null;
+    if (fileInput.files && fileInput.files[0]) {
+        const file = fileInput.files[0];
+        // Validate file size (10MB max)
+        if (file.size > 10 * 1024 * 1024) {
+            alert('File size must be less than 10MB');
+            return;
+        }
+        // In a real application, you would upload this to a server
+        // For demo purposes, we'll just store the filename
+        documentFile = file.name;
+    }
+
+    const contractData = {
+        id: id || `CONTRACT-${String(contracts.length + 1).padStart(3, '0')}`,
+        payerId: document.getElementById('contract-payer-id').value || null,
+        payerName: document.getElementById('contract-payer-name').value,
+        contractName: document.getElementById('contract-name').value,
+        identifiers: identifiers,
+        contactName: document.getElementById('contract-contact-name').value,
+        email: document.getElementById('contract-email').value,
+        phone: document.getElementById('contract-phone').value,
+        fax: document.getElementById('contract-fax').value,
+        streetAddress: document.getElementById('contract-address').value,
+        city: document.getElementById('contract-city').value,
+        state: document.getElementById('contract-state').value,
+        zipCode: document.getElementById('contract-zip').value,
+        effectiveDate: document.getElementById('contract-effective-date').value,
+        expirationDate: document.getElementById('contract-expiration-date').value,
+        status: document.getElementById('contract-status').value,
+        website: document.getElementById('contract-website').value,
+        productLines: document.getElementById('contract-product-lines').value,
+        feeScheduleUrl: document.getElementById('contract-fee-schedule-url').value,
+        documentFile: documentFile,
+        documentUrl: document.getElementById('contract-document-url').value,
+        notes: document.getElementById('contract-notes').value,
+        createdAt: id ? contracts.find(c => c.id === id)?.createdAt : new Date().toISOString().split('T')[0],
+        updatedAt: new Date().toISOString().split('T')[0]
+    };
+
+    if (id) {
+        const index = contracts.findIndex(c => c.id === id);
+        if (index !== -1) {
+            contracts[index] = contractData;
+        }
+    } else {
+        contracts.push(contractData);
+    }
+
+    saveContracts();
+    closeContractModal();
+
+    // If viewing a payer detail, refresh that view
+    if (selectedPayer) {
+        viewPayerDetail(selectedPayer.id);
+    } else {
+        renderPayers();
+    }
+}
+
+function editContract(contractId) {
+    const contract = contracts.find(c => c.id === contractId);
+    if (!contract) return;
+
+    document.getElementById('contract-modal-title').textContent = 'Edit Payer Contract';
+    document.getElementById('contract-edit-id').value = contract.id;
+    document.getElementById('contract-payer-id').value = contract.payerId || '';
+    document.getElementById('contract-payer-name').value = contract.payerName;
+    document.getElementById('contract-name').value = contract.contractName;
+    document.getElementById('contract-contact-name').value = contract.contactName || '';
+    document.getElementById('contract-email').value = contract.email || '';
+    document.getElementById('contract-phone').value = contract.phone || '';
+    document.getElementById('contract-fax').value = contract.fax || '';
+    document.getElementById('contract-address').value = contract.streetAddress || '';
+    document.getElementById('contract-city').value = contract.city || '';
+    document.getElementById('contract-state').value = contract.state || '';
+    document.getElementById('contract-zip').value = contract.zipCode || '';
+    document.getElementById('contract-effective-date').value = contract.effectiveDate || '';
+    document.getElementById('contract-expiration-date').value = contract.expirationDate || '';
+    document.getElementById('contract-status').value = contract.status;
+    document.getElementById('contract-website').value = contract.website || '';
+    document.getElementById('contract-product-lines').value = contract.productLines || '';
+    document.getElementById('contract-fee-schedule-url').value = contract.feeScheduleUrl || '';
+    document.getElementById('contract-document-url').value = contract.documentUrl || '';
+    document.getElementById('contract-notes').value = contract.notes || '';
+
+    // Populate identifiers
+    contractIdentifiers = [];
+    const list = document.getElementById('contract-identifiers-list');
+    list.innerHTML = '';
+
+    if (contract.identifiers && contract.identifiers.length > 0) {
+        contract.identifiers.forEach(identifier => {
+            const id = Date.now() + Math.random();
+            contractIdentifiers.push({ id, type: identifier.type, value: identifier.value });
+
+            list.insertAdjacentHTML('beforeend', `
+                <div id="identifier-${id}" style="display: flex; gap: 0.75rem; align-items: start; margin-bottom: 0.75rem;">
+                    <input
+                        type="text"
+                        placeholder="Type (e.g., Contract Number)"
+                        class="identifier-type"
+                        data-id="${id}"
+                        value="${identifier.type}"
+                        style="flex: 1; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 8px;"
+                    />
+                    <input
+                        type="text"
+                        placeholder="Value"
+                        class="identifier-value"
+                        data-id="${id}"
+                        value="${identifier.value}"
+                        style="flex: 1; padding: 0.75rem; border: 1px solid #e2e8f0; border-radius: 8px;"
+                    />
+                    <button
+                        type="button"
+                        onclick="removeContractIdentifier(${id})"
+                        class="btn-danger btn-small"
+                    >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+            `);
+        });
+    } else {
+        list.innerHTML = `
+            <p style="text-align: center; padding: 1.5rem; color: #94a3b8; font-size: 0.875rem; border: 1px dashed #e2e8f0; border-radius: 8px;">
+                No identifiers added. Click "Add Identifier" to add contract numbers, group IDs, etc.
+            </p>
+        `;
+    }
+
+    document.getElementById('payer-contract-modal').classList.add('active');
+}
+
+function deleteContract(contractId) {
+    if (confirm('Are you sure you want to archive this contract? It will be moved to archived contracts.')) {
+        const contract = contracts.find(c => c.id === contractId);
+        if (contract) {
+            contract.status = 'Archived';
+            contract.archivedAt = new Date().toISOString().split('T')[0];
+            saveContracts();
+
+            if (selectedPayer) {
+                viewPayerDetail(selectedPayer.id);
+            } else {
+                renderPayers();
+            }
+        }
+    }
+}
+
+// Payer Detail View
+function viewPayerDetail(payerId) {
+    selectedPayer = payers.find(p => p.id === payerId);
+    if (!selectedPayer) return;
+
+    const payerContracts = contracts.filter(c => c.payerId === payerId && c.status !== 'Archived');
+    const detailView = document.getElementById('payer-detail-view');
+
+    detailView.innerHTML = `
+        <div class="detail-header">
+            <button class="back-btn" onclick="closePayerDetail()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"/>
+                </svg>
+                Back to Payers
+            </button>
+        </div>
+        <div class="detail-content">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 2rem;">
+                <div>
+                    <h1 style="font-size: 1.75rem; font-weight: 700; margin-bottom: 0.25rem;">${selectedPayer.name}</h1>
+                    <p style="color: #64748b; font-size: 1.125rem;">${selectedPayer.type}</p>
+                </div>
+                <span class="status-badge status-${selectedPayer.status.toLowerCase()}">
+                    ${selectedPayer.status}
+                </span>
+            </div>
+
+            <div class="info-grid">
+                <div class="info-card">
+                    <h3>Payer Information</h3>
+                    <div class="info-field">
+                        <div class="info-label">Payer ID</div>
+                        <div class="info-value">${selectedPayer.payerId}</div>
+                    </div>
+                    <div class="info-field">
+                        <div class="info-label">Type</div>
+                        <div class="info-value">${selectedPayer.type}</div>
+                    </div>
+                    <div class="info-field">
+                        <div class="info-label">Status</div>
+                        <div class="info-value">${selectedPayer.status}</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contracts Section -->
+            <div style="margin-top: 2rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                    <h2 style="font-size: 1.5rem; font-weight: 600; color: #1e293b;">
+                        Contracts (${payerContracts.length})
+                    </h2>
+                    <button class="btn btn-primary" onclick="showContractModal('${selectedPayer.id}')">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        Add Contract
+                    </button>
+                </div>
+
+                ${payerContracts.length === 0 ? `
+                    <div class="coming-soon">
+                        No contracts found. Click "Add Contract" to create your first payer contract.
+                    </div>
+                ` : `
+                    <div class="providers-grid">
+                        ${payerContracts.map(contract => `
+                            <div class="provider-card">
+                                <div style="margin-bottom: 1rem;">
+                                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                                        <h3 style="font-size: 1.125rem; font-weight: 600; color: #1e293b;">${contract.contractName}</h3>
+                                        <span class="status-badge status-${contract.status.toLowerCase()}">${contract.status}</span>
+                                    </div>
+                                    <p style="font-size: 0.875rem; color: #64748b;">${contract.payerName}</p>
+                                </div>
+
+                                ${contract.identifiers && contract.identifiers.length > 0 ? `
+                                    <div style="margin-bottom: 0.75rem;">
+                                        ${contract.identifiers.map(id => `
+                                            <div style="font-size: 0.8125rem; color: #64748b; margin-bottom: 0.25rem;">
+                                                <span style="font-weight: 500;">${id.type}:</span> ${id.value}
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                ` : ''}
+
+                                <div style="font-size: 0.875rem; color: #64748b; margin-bottom: 0.5rem;">
+                                    ${contract.effectiveDate ? `<div>📅 Effective: ${contract.effectiveDate}</div>` : ''}
+                                    ${contract.expirationDate ? `<div>⏰ Expires: ${contract.expirationDate}</div>` : ''}
+                                    ${contract.productLines ? `<div>📦 ${contract.productLines}</div>` : ''}
+                                </div>
+
+                                <div style="display: flex; gap: 0.5rem; margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e2e8f0;">
+                                    <button class="btn btn-primary btn-small" onclick="editContract('${contract.id}')">Edit</button>
+                                    <button class="btn btn-secondary btn-small" onclick="deleteContract('${contract.id}')">Archive</button>
+                                    ${contract.documentUrl || contract.documentFile ? `
+                                        <button class="btn btn-secondary btn-small" onclick="window.open('${contract.documentUrl}', '_blank')">View Doc</button>
+                                    ` : ''}
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `}
+            </div>
+        </div>
+    `;
+
+    // Show detail view
+    document.getElementById('payers-view').classList.remove('active');
+    detailView.classList.add('active');
+}
+
+function closePayerDetail() {
+    document.getElementById('payer-detail-view').classList.remove('active');
+    document.getElementById('payers-view').classList.add('active');
+    selectedPayer = null;
 }

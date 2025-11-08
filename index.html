@@ -555,6 +555,176 @@
         </div>
     </div>
 
+    <!-- Payer Contract Modal -->
+    <div id="payer-contract-modal" class="modal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <div>
+                    <h2 id="contract-modal-title">Add Payer Contract</h2>
+                    <p style="font-size: 0.875rem; color: #64748b; margin-top: 0.25rem;">
+                        Create a new insurance payer contract with flexible identifiers
+                    </p>
+                </div>
+                <span class="close" onclick="closeContractModal()">&times;</span>
+            </div>
+            <form id="contract-form" onsubmit="saveContract(event)">
+                <input type="hidden" id="contract-edit-id">
+                <input type="hidden" id="contract-payer-id">
+
+                <!-- Basic Information -->
+                <div style="margin-bottom: 1.5rem;">
+                    <h3 style="font-size: 1.125rem; font-weight: 600; color: #1e293b; margin-bottom: 1rem;">Basic Information</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label for="contract-payer-name">Payer Name <span style="color: #ef4444;">*</span></label>
+                            <input type="text" id="contract-payer-name" required placeholder="e.g., Blue Cross Blue Shield">
+                        </div>
+                        <div class="form-group">
+                            <label for="contract-name">Contract Name <span style="color: #ef4444;">*</span></label>
+                            <input type="text" id="contract-name" required placeholder="e.g., PPO Network Agreement">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contract Identifiers -->
+                <div style="margin-bottom: 1.5rem;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 style="font-size: 1.125rem; font-weight: 600; color: #1e293b;">Contract Identifiers</h3>
+                        <button type="button" onclick="addContractIdentifier()" class="btn btn-secondary btn-small">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="12" y1="5" x2="12" y2="19"></line>
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            Add Identifier
+                        </button>
+                    </div>
+                    <div id="contract-identifiers-list">
+                        <p style="text-align: center; padding: 1.5rem; color: #94a3b8; font-size: 0.875rem; border: 1px dashed #e2e8f0; border-radius: 8px;">
+                            No identifiers added. Click "Add Identifier" to add contract numbers, group IDs, etc.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Contact Information -->
+                <div style="margin-bottom: 1.5rem;">
+                    <h3 style="font-size: 1.125rem; font-weight: 600; color: #1e293b; margin-bottom: 1rem;">Contact Information</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label for="contract-contact-name">Contact Name</label>
+                            <input type="text" id="contract-contact-name">
+                        </div>
+                        <div class="form-group">
+                            <label for="contract-email">Email</label>
+                            <input type="email" id="contract-email">
+                        </div>
+                        <div class="form-group">
+                            <label for="contract-phone">Phone</label>
+                            <input type="tel" id="contract-phone">
+                        </div>
+                        <div class="form-group">
+                            <label for="contract-fax">Fax</label>
+                            <input type="tel" id="contract-fax">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Address -->
+                <div style="margin-bottom: 1.5rem;">
+                    <h3 style="font-size: 1.125rem; font-weight: 600; color: #1e293b; margin-bottom: 1rem;">Address</h3>
+                    <div class="form-group">
+                        <label for="contract-address">Street Address</label>
+                        <input type="text" id="contract-address">
+                    </div>
+                    <div style="display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label for="contract-city">City</label>
+                            <input type="text" id="contract-city">
+                        </div>
+                        <div class="form-group">
+                            <label for="contract-state">State</label>
+                            <input type="text" id="contract-state" maxlength="2">
+                        </div>
+                        <div class="form-group">
+                            <label for="contract-zip">ZIP Code</label>
+                            <input type="text" id="contract-zip">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Contract Details -->
+                <div style="margin-bottom: 1.5rem;">
+                    <h3 style="font-size: 1.125rem; font-weight: 600; color: #1e293b; margin-bottom: 1rem;">Contract Details</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="form-group">
+                            <label for="contract-effective-date">Effective Date</label>
+                            <input type="date" id="contract-effective-date">
+                        </div>
+                        <div class="form-group">
+                            <label for="contract-expiration-date">Expiration Date</label>
+                            <input type="date" id="contract-expiration-date">
+                        </div>
+                        <div class="form-group">
+                            <label for="contract-status">Status</label>
+                            <select id="contract-status">
+                                <option value="Pending">Pending</option>
+                                <option value="Active">Active</option>
+                                <option value="Expired">Expired</option>
+                                <option value="Terminated">Terminated</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="contract-website">Website</label>
+                            <input type="url" id="contract-website" placeholder="https://">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="contract-product-lines">Product Lines</label>
+                        <input type="text" id="contract-product-lines" placeholder="e.g., HMO, PPO, Medicare Advantage">
+                    </div>
+                    <div class="form-group">
+                        <label for="contract-fee-schedule-url">Fee Schedule URL</label>
+                        <input type="url" id="contract-fee-schedule-url" placeholder="https://">
+                    </div>
+
+                    <!-- Document Upload -->
+                    <div class="form-group">
+                        <label for="contract-document">Upload Contract Document</label>
+                        <input type="file" id="contract-document" accept=".pdf,.jpg,.jpeg,.png">
+                        <p style="font-size: 0.75rem; color: #64748b; margin-top: 0.25rem;">
+                            Supported formats: PDF, JPG, PNG (max 10MB)
+                        </p>
+                    </div>
+
+                    <div style="text-align: center; color: #94a3b8; font-size: 0.875rem; padding: 0.5rem;">Or</div>
+
+                    <div class="form-group">
+                        <label for="contract-document-url">Enter Contract Document URL</label>
+                        <input type="url" id="contract-document-url" placeholder="https://">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="contract-notes">Notes</label>
+                        <textarea id="contract-notes" rows="4" placeholder="Add any additional notes or information about this contract..."></textarea>
+                    </div>
+                </div>
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-secondary" onclick="closeContractModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-right: 0.5rem;">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                        </svg>
+                        Add Contract
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Payer Detail View -->
+    <div id="payer-detail-view" class="view"></div>
+
     <script src="app.js"></script>
 </body>
 </html>
