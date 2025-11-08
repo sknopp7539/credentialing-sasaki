@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ProviderVault Debug</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            padding: 2rem;
+            background: #f8fafc;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #1e293b;
+            margin-bottom: 1rem;
+        }
+        pre {
+            background: #f1f5f9;
+            padding: 1rem;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-size: 0.875rem;
+        }
+        .section {
+            margin-bottom: 2rem;
+        }
+        .btn {
+            background: #3b82f6;
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            cursor: pointer;
+            margin-right: 0.5rem;
+        }
+        .btn:hover {
+            background: #2563eb;
+        }
+        .btn-danger {
+            background: #ef4444;
+        }
+        .btn-danger:hover {
+            background: #dc2626;
+        }
+        .info {
+            padding: 1rem;
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 6px;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>ProviderVault Debug Console</h1>
+
+        <div class="info">
+            <strong>Instructions:</strong> This page shows what's stored in your browser's localStorage for ProviderVault.
+        </div>
+
+        <div style="margin-bottom: 2rem;">
+            <button class="btn" onclick="loadData()">Refresh Data</button>
+            <button class="btn" onclick="clearProviders()">Clear All Providers</button>
+            <button class="btn" onclick="window.location.href='index.html'">Back to App</button>
+        </div>
+
+        <div class="section">
+            <h2>Current Organization</h2>
+            <pre id="current-org">Loading...</pre>
+        </div>
+
+        <div class="section">
+            <h2>All Organizations</h2>
+            <pre id="organizations">Loading...</pre>
+        </div>
+
+        <div class="section">
+            <h2>All Providers</h2>
+            <pre id="providers">Loading...</pre>
+        </div>
+
+        <div class="section">
+            <h2>All Locations</h2>
+            <pre id="locations">Loading...</pre>
+        </div>
+    </div>
+
+    <script>
+        function loadData() {
+            // Current Organization
+            const currentOrg = localStorage.getItem('pvCurrentOrganization');
+            document.getElementById('current-org').textContent = currentOrg || 'No organization selected';
+
+            // Organizations
+            const orgs = localStorage.getItem('pvOrganizations');
+            if (orgs) {
+                const parsedOrgs = JSON.parse(orgs);
+                document.getElementById('organizations').textContent = JSON.stringify(parsedOrgs, null, 2);
+            } else {
+                document.getElementById('organizations').textContent = 'No organizations found';
+            }
+
+            // Providers
+            const providers = localStorage.getItem('pvProviders');
+            if (providers) {
+                const parsedProviders = JSON.parse(providers);
+                document.getElementById('providers').textContent = JSON.stringify(parsedProviders, null, 2);
+
+                // Show summary
+                console.log('Total providers:', parsedProviders.length);
+                parsedProviders.forEach(p => {
+                    console.log(`Provider: ${p.name || `${p.firstName} ${p.lastName}`}, ID: ${p.id}, OrgID: ${p.organizationId}`);
+                    console.log('  - Licenses:', p.licenses?.length || 0);
+                    console.log('  - Practice Locations:', p.practiceLocations?.length || 0);
+                    console.log('  - Hospital Affiliations:', p.hospitalAffiliations?.length || 0);
+                    console.log('  - Credentialing Contacts:', p.credentialingContacts?.length || 0);
+                    console.log('  - Liability Insurance:', p.liabilityInsurance?.length || 0);
+                    console.log('  - Professional References:', p.professionalReferences?.length || 0);
+                });
+            } else {
+                document.getElementById('providers').textContent = 'No providers found';
+            }
+
+            // Locations
+            const locations = localStorage.getItem('pvLocations');
+            if (locations) {
+                const parsedLocations = JSON.parse(locations);
+                document.getElementById('locations').textContent = JSON.stringify(parsedLocations, null, 2);
+            } else {
+                document.getElementById('locations').textContent = 'No locations found';
+            }
+        }
+
+        function clearProviders() {
+            if (confirm('Are you sure you want to clear all providers? This cannot be undone.')) {
+                localStorage.removeItem('pvProviders');
+                alert('All providers have been cleared. Reload the main app to see changes.');
+                loadData();
+            }
+        }
+
+        // Load data on page load
+        loadData();
+    </script>
+</body>
+</html>
