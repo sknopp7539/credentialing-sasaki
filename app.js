@@ -107,6 +107,8 @@ function showView(viewName) {
         updateDashboard();
     } else if (viewName === 'providers') {
         renderProviders();
+    } else if (viewName === 'credentialing') {
+        renderCredentialing();
     } else if (viewName === 'payers') {
         renderPayers();
     } else if (viewName === 'enrollments') {
@@ -272,8 +274,22 @@ function switchOrganization(orgId) {
         localStorage.setItem('pvCurrentOrganization', JSON.stringify(currentOrganization));
         updateOrganizationDisplay();
 
-        // Reload data for new organization
-        renderProviders();
+        // Reload data for new organization based on active view
+        const activeView = document.querySelector('.view.active');
+        if (activeView) {
+            const viewId = activeView.id.replace('-view', '');
+            console.log('🏢 Reloading view:', viewId);
+
+            if (viewId === 'providers') {
+                renderProviders();
+            } else if (viewId === 'credentialing') {
+                renderCredentialing();
+            } else if (viewId === 'locations') {
+                renderLocations();
+            } else if (viewId === 'payers') {
+                renderPayers();
+            }
+        }
 
         // Close dropdown
         const dropdown = document.getElementById('org-dropdown');
@@ -1106,6 +1122,161 @@ function renderProviders() {
             </div>
         `;
     }).join('');
+}
+
+// ===== CREDENTIALING VIEW =====
+function renderCredentialing() {
+    const container = document.getElementById('credentialing-view');
+    if (!container) return;
+
+    console.log('📋 Rendering credentialing view...');
+    console.log('   Current Organization:', currentOrganization ? `${currentOrganization.name} (ID: ${currentOrganization.id})` : 'None');
+
+    // Filter providers by current organization
+    const orgProviders = currentOrganization ?
+        providers.filter(p => p.organizationId === currentOrganization.id) :
+        providers;
+
+    console.log('   Filtered providers for credentialing:', orgProviders.length);
+
+    if (orgProviders.length === 0) {
+        container.innerHTML = `
+            <div class="page-header">
+                <h1>Credentialing</h1>
+            </div>
+            <div class="coming-soon">
+                ${currentOrganization ?
+                    `No providers found for ${currentOrganization.name}. Add providers to begin credentialing tracking.` :
+                    'No providers found. Select an organization and add providers to begin.'}
+            </div>
+        `;
+        return;
+    }
+
+    // Render credentialing view with provider cards
+    container.innerHTML = `
+        <div class="page-header">
+            <h1>Credentialing</h1>
+            <p style="color: #64748b; margin-top: 0.5rem;">Track provider credentialing status${currentOrganization ? ` for ${currentOrganization.name}` : ''}</p>
+        </div>
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 1.5rem; padding: 1.5rem;">
+            ${orgProviders.map(provider => renderCredentialingCard(provider)).join('')}
+        </div>
+    `;
+}
+
+function renderCredentialingCard(provider) {
+    // Calculate credentialing completion stats
+    const licenses = provider.licenses || [];
+    const hospitalAffiliations = provider.hospitalAffiliations || [];
+    const liabilityInsurance = provider.liabilityInsurance || [];
+    const professionalReferences = provider.professionalReferences || [];
+    const credentialingContacts = provider.credentialingContacts || [];
+    const practiceLocations = provider.practiceLocations || [];
+
+    // Count completed items
+    let completedItems = 0;
+    let totalItems = 14; // Total checklist items
+
+    // Check what's completed
+    if (licenses.length > 0) completedItems++;
+    if (provider.npi) completedItems++;
+    if (provider.specialty) completedItems++;
+    if (hospitalAffiliations.length > 0) completedItems++;
+    if (liabilityInsurance.length > 0) completedItems++;
+    if (professionalReferences.length > 0) completedItems++;
+    if (credentialingContacts.length > 0) completedItems++;
+    if (practiceLocations.length > 0) completedItems++;
+    if (provider.hireDate) completedItems++;
+    if (provider.employmentStatus) completedItems++;
+
+    const completionPercentage = Math.round((completedItems / totalItems) * 100);
+
+    // Determine status color
+    let statusColor = '#ef4444'; // red
+    let statusText = 'Not Started';
+    if (completionPercentage > 0 && completionPercentage < 50) {
+        statusColor = '#f59e0b'; // amber
+        statusText = 'In Progress';
+    } else if (completionPercentage >= 50 && completionPercentage < 100) {
+        statusColor = '#3b82f6'; // blue
+        statusText = 'In Progress';
+    } else if (completionPercentage === 100) {
+        statusColor = '#10b981'; // green
+        statusText = 'Complete';
+    }
+
+    return `
+        <div class="provider-card" onclick="viewProviderDetail('${provider.id}')" style="cursor: pointer;">
+            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                <div>
+                    <h3 style="margin: 0; font-size: 1.125rem; color: #1e293b;">${provider.name || `Dr. ${provider.firstName} ${provider.lastName}`}</h3>
+                    <div style="color: #64748b; font-size: 0.875rem; margin-top: 0.25rem;">${provider.specialty}</div>
+                    <div style="color: #94a3b8; font-size: 0.75rem; margin-top: 0.25rem;">NPI: ${provider.npi}</div>
+                </div>
+                <span style="padding: 0.375rem 0.75rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600; background: ${statusColor}20; color: ${statusColor};">
+                    ${statusText}
+                </span>
+            </div>
+
+            <!-- Progress Bar -->
+            <div style="margin-bottom: 1rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem;">
+                    <span style="font-size: 0.75rem; font-weight: 600; color: #64748b;">CREDENTIALING PROGRESS</span>
+                    <span style="font-size: 0.75rem; font-weight: 600; color: ${statusColor};">${completionPercentage}%</span>
+                </div>
+                <div style="width: 100%; height: 8px; background: #e2e8f0; border-radius: 4px; overflow: hidden;">
+                    <div style="width: ${completionPercentage}%; height: 100%; background: ${statusColor}; transition: width 0.3s ease;"></div>
+                </div>
+            </div>
+
+            <!-- Credentialing Items Summary -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; font-size: 0.875rem;">
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span style="color: ${licenses.length > 0 ? '#10b981' : '#94a3b8'};">
+                        ${licenses.length > 0 ? '✓' : '○'}
+                    </span>
+                    <span style="color: #64748b;">State Licenses (${licenses.length})</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span style="color: ${liabilityInsurance.length > 0 ? '#10b981' : '#94a3b8'};">
+                        ${liabilityInsurance.length > 0 ? '✓' : '○'}
+                    </span>
+                    <span style="color: #64748b;">Liability Insurance</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span style="color: ${hospitalAffiliations.length > 0 ? '#10b981' : '#94a3b8'};">
+                        ${hospitalAffiliations.length > 0 ? '✓' : '○'}
+                    </span>
+                    <span style="color: #64748b;">Hospital Privileges</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span style="color: ${professionalReferences.length > 0 ? '#10b981' : '#94a3b8'};">
+                        ${professionalReferences.length > 0 ? '✓' : '○'}
+                    </span>
+                    <span style="color: #64748b;">References (${professionalReferences.length})</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span style="color: ${practiceLocations.length > 0 ? '#10b981' : '#94a3b8'};">
+                        ${practiceLocations.length > 0 ? '✓' : '○'}
+                    </span>
+                    <span style="color: #64748b;">Practice Locations</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 0.5rem;">
+                    <span style="color: ${credentialingContacts.length > 0 ? '#10b981' : '#94a3b8'};">
+                        ${credentialingContacts.length > 0 ? '✓' : '○'}
+                    </span>
+                    <span style="color: #64748b;">Contacts (${credentialingContacts.length})</span>
+                </div>
+            </div>
+
+            <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e2e8f0;">
+                <button class="btn btn-primary btn-small" onclick="event.stopPropagation(); editProvider('${provider.id}')" style="width: 100%;">
+                    View Details & Update
+                </button>
+            </div>
+        </div>
+    `;
 }
 
 function viewProviderDetail(providerId) {
