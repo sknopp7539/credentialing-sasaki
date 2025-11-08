@@ -1123,6 +1123,17 @@ function viewProviderDetail(providerId) {
     const documents = selectedProvider.documents || [];
     const archivedDocuments = selectedProvider.archivedDocuments || [];
 
+    // Extract comprehensive credentialing data
+    const practiceLocations = selectedProvider.practiceLocations || [];
+    const hospitalAffiliations = selectedProvider.hospitalAffiliations || [];
+    const credentialingContacts = selectedProvider.credentialingContacts || [];
+    const liabilityInsurance = selectedProvider.liabilityInsurance || [];
+    const professionalReferences = selectedProvider.professionalReferences || [];
+    const disclosures = selectedProvider.disclosures || {};
+    const hireDate = selectedProvider.hireDate || '';
+    const employmentStatus = selectedProvider.employmentStatus || '';
+    const employmentNotes = selectedProvider.employmentNotes || '';
+
     detailView.innerHTML = `
         <!-- Sticky Header -->
         <div style="background: white; border-bottom: 1px solid #e2e8f0; padding: 1.5rem; position: sticky; top: 0; z-index: 10;">
@@ -1258,32 +1269,206 @@ function viewProviderDetail(providerId) {
                 `}
             `, 'Upload Document')}
 
-            <!-- Empty State Sections -->
-            ${renderExpandableSection('providerLocations', 'Provider Locations', 0, `
-                <div style="text-align: center; padding: 3rem; color: #94a3b8;">
-                    <div style="width: 64px; height: 64px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-center; margin: 0 auto 1rem;">
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #94a3b8;">
-                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
-                            <circle cx="12" cy="10" r="3"></circle>
-                        </svg>
+            <!-- Employment Information Section -->
+            ${hireDate || employmentStatus || employmentNotes ? `
+                <div class="section-card" style="background: white; border-radius: 12px; border: 1px solid #e2e8f0; padding: 1.5rem; margin-bottom: 1.5rem;">
+                    <h3 style="font-size: 1rem; font-weight: 600; color: #1e293b; margin-bottom: 1rem;">Employment Information</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        ${hireDate ? `
+                            <div>
+                                <div style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">Hire Date</div>
+                                <div style="font-size: 0.875rem; color: #1e293b; font-weight: 500; margin-top: 0.25rem;">${hireDate}</div>
+                            </div>
+                        ` : ''}
+                        ${employmentStatus ? `
+                            <div>
+                                <div style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">Employment Status</div>
+                                <div style="font-size: 0.875rem; color: #1e293b; font-weight: 500; margin-top: 0.25rem;">${employmentStatus}</div>
+                            </div>
+                        ` : ''}
                     </div>
-                    <p style="margin-bottom: 0.5rem; font-weight: 500;">No locations found</p>
-                    <p style="font-size: 0.875rem;">Assign this provider to practice locations.</p>
+                    ${employmentNotes ? `
+                        <div style="margin-top: 1rem;">
+                            <div style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px;">Notes</div>
+                            <div style="font-size: 0.875rem; color: #475569; margin-top: 0.25rem;">${employmentNotes}</div>
+                        </div>
+                    ` : ''}
                 </div>
+            ` : ''}
+
+            <!-- Practice Locations Section -->
+            ${renderExpandableSection('providerLocations', 'Practice Locations', practiceLocations.length, `
+                ${practiceLocations.length > 0 ? practiceLocations.map(loc => {
+                    const location = locations.find(l => l.id === loc.locationId);
+                    if (!location) return '';
+                    return `
+                        <div style="padding: 1rem; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 0.75rem; background: #f8fafc;">
+                            <div style="display: flex; align-items: start; gap: 0.75rem;">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #475569; margin-top: 2px;">
+                                    <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                    <circle cx="12" cy="10" r="3"></circle>
+                                </svg>
+                                <div style="flex: 1;">
+                                    <div style="font-weight: 600; color: #1e293b; margin-bottom: 0.25rem;">${location.name}</div>
+                                    <div style="font-size: 0.875rem; color: #64748b;">${location.address}</div>
+                                    <div style="font-size: 0.875rem; color: #64748b;">${location.city}, ${location.state} ${location.zipCode}</div>
+                                    ${location.phone ? `<div style="font-size: 0.875rem; color: #64748b; margin-top: 0.25rem;">${location.phone}</div>` : ''}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                }).join('') : `
+                    <div style="text-align: center; padding: 3rem; color: #94a3b8;">
+                        <div style="width: 64px; height: 64px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #94a3b8;">
+                                <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                <circle cx="12" cy="10" r="3"></circle>
+                            </svg>
+                        </div>
+                        <p style="margin-bottom: 0.5rem; font-weight: 500;">No locations found</p>
+                        <p style="font-size: 0.875rem;">Assign this provider to practice locations.</p>
+                    </div>
+                `}
             `, 'Add Location')}
 
-            ${renderExpandableSection('education', 'Education & Professional Training', 0, `
-                <div style="text-align: center; padding: 3rem; color: #94a3b8;">
-                    <div style="width: 64px; height: 64px; background: #f1f5f9; border-radius: 50%; display: flex; align-items: center; justify-center; margin: 0 auto 1rem;">
-                        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #94a3b8;">
-                            <path d="M22 10v6M2 10l10-5 10 5-10 5z"></path>
-                            <path d="M6 12v5c3 3 9 3 12 0v-5"></path>
-                        </svg>
+            <!-- Hospital Affiliations Section -->
+            ${renderExpandableSection('hospitalAffiliations', 'Hospital Affiliations & Privileges', hospitalAffiliations.length, `
+                ${hospitalAffiliations.length > 0 ? hospitalAffiliations.map(affiliation => `
+                    <div style="padding: 1rem; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 0.75rem; background: #f8fafc;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                            <div style="font-weight: 600; color: #1e293b;">${affiliation.hospital}</div>
+                            <span class="status-badge status-${affiliation.status.toLowerCase()}" style="font-size: 0.75rem; padding: 0.25rem 0.75rem;">
+                                ${affiliation.status}
+                            </span>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; font-size: 0.875rem; color: #64748b;">
+                            ${affiliation.privilegeType ? `<div><strong>Privilege:</strong> ${affiliation.privilegeType}</div>` : ''}
+                            ${affiliation.department ? `<div><strong>Department:</strong> ${affiliation.department}</div>` : ''}
+                            ${affiliation.startDate ? `<div><strong>Start Date:</strong> ${affiliation.startDate}</div>` : ''}
+                        </div>
                     </div>
-                    <p style="margin-bottom: 0.5rem; font-weight: 500;">No education records found</p>
-                    <p style="font-size: 0.875rem;">Add medical school, residency, fellowship, or other training.</p>
+                `).join('') : `
+                    <div style="text-align: center; padding: 3rem; color: #94a3b8;">
+                        <p style="margin-bottom: 0.5rem; font-weight: 500;">No hospital affiliations found</p>
+                        <p style="font-size: 0.875rem;">Add hospital affiliations and clinical privileges.</p>
+                    </div>
+                `}
+            `, 'Add Affiliation')}
+
+            <!-- Credentialing Contacts Section -->
+            ${renderExpandableSection('credentialingContacts', 'Credentialing Contacts', credentialingContacts.length, `
+                ${credentialingContacts.length > 0 ? credentialingContacts.map(contact => `
+                    <div style="padding: 1rem; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 0.75rem; background: #f8fafc;">
+                        <div style="font-weight: 600; color: #1e293b; margin-bottom: 0.5rem;">${contact.name}</div>
+                        <div style="font-size: 0.875rem; color: #64748b; margin-bottom: 0.25rem;">${contact.organization}</div>
+                        <div style="display: flex; gap: 1rem; font-size: 0.875rem; color: #64748b;">
+                            ${contact.phone ? `<div><strong>Phone:</strong> ${contact.phone}</div>` : ''}
+                            ${contact.email ? `<div><strong>Email:</strong> ${contact.email}</div>` : ''}
+                        </div>
+                    </div>
+                `).join('') : `
+                    <div style="text-align: center; padding: 3rem; color: #94a3b8;">
+                        <p style="margin-bottom: 0.5rem; font-weight: 500;">No credentialing contacts found</p>
+                        <p style="font-size: 0.875rem;">Add contacts for credentialing coordination.</p>
+                    </div>
+                `}
+            `, 'Add Contact')}
+
+            <!-- Professional Liability Insurance Section -->
+            ${renderExpandableSection('professionalLiability', 'Professional Liability Insurance', liabilityInsurance.length, `
+                ${liabilityInsurance.length > 0 ? liabilityInsurance.map(policy => `
+                    <div style="padding: 1rem; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 0.75rem; background: #f8fafc;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
+                            <div>
+                                <div style="font-weight: 600; color: #1e293b;">${policy.carrier}</div>
+                                <div style="font-size: 0.875rem; color: #64748b; margin-top: 0.25rem;">Policy #: ${policy.policyNumber}</div>
+                            </div>
+                            ${policy.coverageAmount ? `
+                                <div style="font-weight: 600; color: #10b981;">$${policy.coverageAmount}</div>
+                            ` : ''}
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; font-size: 0.875rem; color: #64748b;">
+                            ${policy.policyType ? `<div><strong>Type:</strong> ${policy.policyType}</div>` : ''}
+                            ${policy.effectiveDate ? `<div><strong>Effective:</strong> ${policy.effectiveDate}</div>` : ''}
+                            ${policy.expirationDate ? `<div><strong>Expires:</strong> ${policy.expirationDate}</div>` : ''}
+                        </div>
+                    </div>
+                `).join('') : `
+                    <div style="text-align: center; padding: 3rem; color: #94a3b8;">
+                        <p style="margin-bottom: 0.5rem; font-weight: 500;">No liability insurance found</p>
+                        <p style="font-size: 0.875rem;">Add professional liability insurance policies.</p>
+                    </div>
+                `}
+            `, 'Add Policy')}
+
+            <!-- Professional References Section -->
+            ${renderExpandableSection('professionalReferences', 'Professional References', professionalReferences.length, `
+                ${professionalReferences.length > 0 ? professionalReferences.map(reference => `
+                    <div style="padding: 1rem; border: 1px solid #e2e8f0; border-radius: 8px; margin-bottom: 0.75rem; background: #f8fafc;">
+                        <div style="font-weight: 600; color: #1e293b; margin-bottom: 0.25rem;">${reference.name}</div>
+                        <div style="font-size: 0.875rem; color: #64748b; margin-bottom: 0.5rem;">
+                            ${reference.title ? `${reference.title}` : ''}
+                            ${reference.title && reference.organization ? ' at ' : ''}
+                            ${reference.organization ? `${reference.organization}` : ''}
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; font-size: 0.875rem; color: #64748b;">
+                            ${reference.relationship ? `<div><strong>Relationship:</strong> ${reference.relationship}</div>` : ''}
+                            ${reference.phone ? `<div><strong>Phone:</strong> ${reference.phone}</div>` : ''}
+                            ${reference.email ? `<div><strong>Email:</strong> ${reference.email}</div>` : ''}
+                        </div>
+                    </div>
+                `).join('') : `
+                    <div style="text-align: center; padding: 3rem; color: #94a3b8;">
+                        <p style="margin-bottom: 0.5rem; font-weight: 500;">No professional references found</p>
+                        <p style="font-size: 0.875rem;">Add professional references for this provider.</p>
+                    </div>
+                `}
+            `, 'Add Reference')}
+
+            <!-- Disclosures & Attestations Section -->
+            ${(disclosures.sanctionsDisclosed || disclosures.malpracticeDisclosed || disclosures.felonyDisclosed || disclosures.disclosureNotes) ? `
+                <div class="section-card" style="background: white; border-radius: 12px; border: 1px solid #e2e8f0; padding: 1.5rem; margin-bottom: 1.5rem;">
+                    <h3 style="font-size: 1rem; font-weight: 600; color: #1e293b; margin-bottom: 1rem;">Disclosures & Attestations</h3>
+                    <div style="display: flex; flex-direction: column; gap: 0.75rem;">
+                        ${disclosures.sanctionsDisclosed ? `
+                            <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; background: #fef2f2; border: 1px solid #fee2e2; border-radius: 6px;">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #dc2626;">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                </svg>
+                                <span style="font-size: 0.875rem; color: #991b1b;">Sanctions or disciplinary actions disclosed</span>
+                            </div>
+                        ` : ''}
+                        ${disclosures.malpracticeDisclosed ? `
+                            <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; background: #fef2f2; border: 1px solid #fee2e2; border-radius: 6px;">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #dc2626;">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                </svg>
+                                <span style="font-size: 0.875rem; color: #991b1b;">Malpractice claims disclosed</span>
+                            </div>
+                        ` : ''}
+                        ${disclosures.felonyDisclosed ? `
+                            <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem; background: #fef2f2; border: 1px solid #fee2e2; border-radius: 6px;">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color: #dc2626;">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                </svg>
+                                <span style="font-size: 0.875rem; color: #991b1b;">Felony convictions disclosed</span>
+                            </div>
+                        ` : ''}
+                        ${disclosures.disclosureNotes ? `
+                            <div style="margin-top: 0.5rem;">
+                                <div style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem;">Disclosure Details</div>
+                                <div style="font-size: 0.875rem; color: #475569; padding: 0.75rem; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px;">${disclosures.disclosureNotes}</div>
+                            </div>
+                        ` : ''}
+                    </div>
                 </div>
-            `, 'Add Education')}
+            ` : ''}
 
             <!-- CRITICAL: Archived Documents Section -->
             ${renderArchivedDocumentsSection(archivedLicenses, archivedDocuments)}
