@@ -268,6 +268,7 @@ function switchOrganization(orgId) {
     const org = organizations.find(o => o.id === orgId);
     if (org) {
         currentOrganization = org;
+        console.log('🏢 Switched to organization:', currentOrganization.name, 'ID:', currentOrganization.id);
         localStorage.setItem('pvCurrentOrganization', JSON.stringify(currentOrganization));
         updateOrganizationDisplay();
 
@@ -1049,10 +1050,24 @@ function renderProviders() {
     const container = document.getElementById('providers-list');
     if (!container) return;
 
+    console.log('👨‍⚕️ Rendering providers...');
+    console.log('   Current Organization:', currentOrganization ? `${currentOrganization.name} (ID: ${currentOrganization.id})` : 'None');
+    console.log('   Total providers in database:', providers.length);
+
+    // Log all providers with their organization IDs
+    providers.forEach(p => {
+        console.log(`   - ${p.name || p.firstName + ' ' + p.lastName}: orgId=${p.organizationId}`);
+    });
+
     // Filter providers by current organization
     const orgProviders = currentOrganization ?
         providers.filter(p => p.organizationId === currentOrganization.id) :
         providers;
+
+    console.log('   Filtered providers for current org:', orgProviders.length);
+    orgProviders.forEach(p => {
+        console.log(`   ✓ ${p.name || p.firstName + ' ' + p.lastName}`);
+    });
 
     if (orgProviders.length === 0) {
         container.innerHTML = `
@@ -2420,13 +2435,14 @@ function closeProviderModal() {
 
 function saveProvider(event) {
     event.preventDefault();
-    console.log('Save provider called');
+    console.log('💾 ========== SAVE PROVIDER CALLED ==========');
+    console.log('💾 Current Organization at time of save:', currentOrganization ? `${currentOrganization.name} (ID: ${currentOrganization.id})` : 'NULL - THIS IS A PROBLEM!');
 
     try {
         const id = document.getElementById('provider-edit-id').value;
         const firstName = document.getElementById('provider-first-name').value;
         const lastName = document.getElementById('provider-last-name').value;
-        console.log('Basic info collected:', firstName, lastName);
+        console.log('💾 Basic info collected:', firstName, lastName);
 
         const licenses = getProviderLicenses();
         console.log('Licenses:', licenses);
@@ -2446,6 +2462,9 @@ function saveProvider(event) {
         const references = getProfessionalReferences();
         console.log('References:', references);
 
+    const assignedOrgId = currentOrganization ? currentOrganization.id : null;
+    console.log('💾 Assigning organizationId:', assignedOrgId);
+
     const providerData = {
         id: id || `PROV-${String(providers.length + 1).padStart(3, '0')}`,
         firstName: firstName,
@@ -2456,7 +2475,7 @@ function saveProvider(event) {
         email: document.getElementById('provider-email').value,
         phone: document.getElementById('provider-phone').value,
         status: document.getElementById('provider-status').value,
-        organizationId: currentOrganization ? currentOrganization.id : null,
+        organizationId: assignedOrgId,
         // Employment Information
         hireDate: document.getElementById('provider-hire-date').value,
         employmentStatus: document.getElementById('provider-employment-status').value,
@@ -2497,18 +2516,27 @@ function saveProvider(event) {
             providerData.documents = existingProvider.documents || [];
             providerData.archivedDocuments = existingProvider.archivedDocuments || [];
             providers[index] = providerData;
+            console.log('💾 Updated existing provider at index', index);
         }
     } else {
         providers.push(providerData);
+        console.log('💾 Added new provider to array');
     }
 
-        console.log('Provider data prepared:', providerData);
+        console.log('💾 Final provider data:', {
+            name: providerData.name,
+            id: providerData.id,
+            organizationId: providerData.organizationId,
+            licensesCount: providerData.licenses?.length || 0,
+            locationsCount: providerData.practiceLocations?.length || 0
+        });
 
         saveProviders();
-        console.log('Providers saved to localStorage');
+        console.log('💾 Providers saved to localStorage');
 
         renderProviders();
-        console.log('Providers rendered');
+        console.log('💾 Providers rendered');
+        console.log('💾 ========== SAVE COMPLETE ==========');
 
         closeProviderModal();
         console.log('Modal closed, save complete!');
