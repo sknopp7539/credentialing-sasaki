@@ -3285,21 +3285,87 @@ function populateEnrollmentDropdowns() {
     const providerSelect = document.getElementById('enrollment-provider');
     const payerSelect = document.getElementById('enrollment-payer');
 
-    providerSelect.innerHTML = '<option value="">Select Provider</option>' +
-        providers.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+    // Only show providers from current organization
+    const orgProviders = currentOrganization ?
+        providers.filter(p => p.organizationId === currentOrganization.id) :
+        providers;
 
-    payerSelect.innerHTML = '<option value="">Select Payer</option>' +
-        payers.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+    providerSelect.innerHTML = '<option value="">Select Provider</option>' +
+        orgProviders.map(p => {
+            const name = `${p.firstName || ''} ${p.lastName || ''}`.trim() || p.name || 'Unknown';
+            return `<option value="${p.id}">${name}</option>`;
+        }).join('');
+
+    // Only show payers that have contracts with current organization
+    const orgPayerIds = currentOrganization ?
+        contracts.filter(c => c.organizationId === currentOrganization.id).map(c => c.payerId) :
+        payers.map(p => p.id);
+
+    const availablePayers = payers.filter(p => orgPayerIds.includes(p.id));
+
+    if (availablePayers.length === 0 && currentOrganization) {
+        payerSelect.innerHTML = '<option value="">No payer contracts found for this organization</option>';
+        payerSelect.disabled = true;
+
+        // Show warning message
+        const warning = document.createElement('div');
+        warning.style.cssText = 'background: #fef3c7; border: 1px solid #f59e0b; color: #92400e; padding: 1rem; border-radius: 8px; margin: 1rem 0;';
+        warning.textContent = `No payer contracts found for ${currentOrganization.name}. Please add payer contracts in the Payer Contracts section before creating enrollments.`;
+
+        const modal = document.getElementById('enrollment-modal');
+        const form = document.getElementById('enrollment-form');
+        const existingWarning = modal.querySelector('.enrollment-warning');
+        if (existingWarning) existingWarning.remove();
+        warning.className = 'enrollment-warning';
+        form.insertBefore(warning, form.firstChild);
+    } else {
+        payerSelect.disabled = false;
+        payerSelect.innerHTML = '<option value="">Select Payer</option>' +
+            availablePayers.map(p => `<option value="${p.id}">${p.name}</option>`).join('');
+
+        // Remove warning if it exists
+        const existingWarning = document.getElementById('enrollment-modal').querySelector('.enrollment-warning');
+        if (existingWarning) existingWarning.remove();
+    }
 }
 
 function saveEnrollment(event) {
     event.preventDefault();
 
     const id = document.getElementById('enrollment-edit-id').value;
+    const providerId = document.getElementById('enrollment-provider').value;
+    const payerId = document.getElementById('enrollment-payer').value;
+
+    // Validation: Check if provider belongs to current organization
+    const provider = providers.find(p => p.id === providerId);
+    if (!provider) {
+        alert('Please select a valid provider');
+        return;
+    }
+
+    if (currentOrganization && provider.organizationId !== currentOrganization.id) {
+        alert(`This provider does not belong to ${currentOrganization.name}. Please select a provider from the current organization.`);
+        return;
+    }
+
+    // Validation: Check if payer has a contract with current organization
+    if (currentOrganization) {
+        const hasContract = contracts.some(c =>
+            c.payerId === payerId && c.organizationId === currentOrganization.id
+        );
+
+        if (!hasContract) {
+            const payer = payers.find(p => p.id === payerId);
+            const payerName = payer ? payer.name : 'this payer';
+            alert(`${currentOrganization.name} does not have a contract with ${payerName}. Please add a payer contract in the Payer Contracts section before creating this enrollment.`);
+            return;
+        }
+    }
+
     const enrollmentData = {
         id: id || `ENR-${String(enrollments.length + 1).padStart(3, '0')}`,
-        providerId: document.getElementById('enrollment-provider').value,
-        payerId: document.getElementById('enrollment-payer').value,
+        providerId: providerId,
+        payerId: payerId,
         applicationDate: document.getElementById('enrollment-application-date').value,
         status: document.getElementById('enrollment-status').value
     };
