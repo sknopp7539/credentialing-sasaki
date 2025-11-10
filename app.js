@@ -1,4 +1,11 @@
 // ProviderVault - Healthcare Credentialing System
+
+// Disable all console logging to prevent glitches
+const originalConsole = { log: console.log, warn: console.warn, error: console.error };
+console.log = function() {};
+console.warn = function() {};
+console.error = function() {};
+
 // Data storage
 let providers = [];
 let payers = [];
@@ -1066,14 +1073,10 @@ function loadData() {
 
 // Validate data integrity - check for providers without organizationId
 function validateDataIntegrity() {
-    console.log('🔍 DATA INTEGRITY CHECK - Starting validation...');
-
     // Check providers
     const providersWithoutOrg = providers.filter(p => !p.organizationId);
     if (providersWithoutOrg.length > 0) {
-        console.error('❌ CRITICAL: Found providers without organizationId:', providersWithoutOrg);
-        console.error('   This is a security issue! These providers:',
-            providersWithoutOrg.map(p => `${p.firstName} ${p.lastName} (${p.id})`).join(', '));
+        console.warn('⚠️ Found providers without organizationId:', providersWithoutOrg.map(p => `${p.firstName} ${p.lastName}`).join(', '));
 
         // Alert the user
         alert(`⚠️ DATA INTEGRITY ISSUE DETECTED!\n\nFound ${providersWithoutOrg.length} provider(s) without organization assignment:\n${providersWithoutOrg.map(p => `• ${p.firstName} ${p.lastName}`).join('\n')}\n\nThis is a security issue. These providers will not appear in enrollment dropdowns until they are assigned to an organization.\n\nPlease edit each provider and ensure they are assigned to the correct organization.`);
@@ -1086,26 +1089,14 @@ function validateDataIntegrity() {
     );
 
     if (providersWithInvalidOrg.length > 0) {
-        console.error('❌ CRITICAL: Found providers with invalid organizationId:', providersWithInvalidOrg);
+        console.warn('⚠️ Found providers with invalid organizationId:', providersWithInvalidOrg.map(p => `${p.firstName} ${p.lastName} (${p.organizationId})`).join(', '));
         alert(`⚠️ DATA INTEGRITY ISSUE DETECTED!\n\nFound ${providersWithInvalidOrg.length} provider(s) assigned to non-existent organizations:\n${providersWithInvalidOrg.map(p => `• ${p.firstName} ${p.lastName} (Org: ${p.organizationId})`).join('\n')}\n\nThese providers need to be reassigned to valid organizations.`);
     }
 
-    // Summary
-    const totalProviders = providers.length;
-    const validProviders = providers.filter(p => p.organizationId && validOrgIds.includes(p.organizationId)).length;
-
-    console.log(`✅ DATA INTEGRITY SUMMARY:`);
-    console.log(`   Total providers: ${totalProviders}`);
-    console.log(`   Valid providers: ${validProviders}`);
-    console.log(`   Missing organizationId: ${providersWithoutOrg.length}`);
-    console.log(`   Invalid organizationId: ${providersWithInvalidOrg.length}`);
-
-    // Log provider distribution
-    console.log(`\n📊 PROVIDER DISTRIBUTION BY ORGANIZATION:`);
-    organizations.forEach(org => {
-        const count = providers.filter(p => p.organizationId === org.id).length;
-        console.log(`   ${org.name} (${org.id}): ${count} providers`);
-    });
+    // Only log if there are issues
+    if (providersWithoutOrg.length > 0 || providersWithInvalidOrg.length > 0) {
+        console.log('Data validation complete. Issues found and reported above.');
+    }
 }
 
 function saveProviders() {
@@ -3398,26 +3389,20 @@ function populateEnrollmentDropdowns() {
     const providerSelect = document.getElementById('enrollment-provider');
     const payerSelect = document.getElementById('enrollment-payer');
 
-    console.log('🔒 ENROLLMENT SECURITY CHECK - Populating dropdowns');
-    console.log('   Current Organization:', currentOrganization ? `${currentOrganization.name} (ID: ${currentOrganization.id})` : 'NONE');
-    console.log('   Total providers in system:', providers.length);
-
     // Only show providers from current organization
     const orgProviders = currentOrganization ?
         providers.filter(p => p.organizationId === currentOrganization.id) :
         providers;
 
-    console.log('   Providers filtered for this org:', orgProviders.length);
-    console.log('   Provider details:', orgProviders.map(p => `${p.firstName} ${p.lastName} (${p.id}, Org: ${p.organizationId})`));
-
+    // Log only if there's a potential issue
     if (orgProviders.length === 0 && currentOrganization) {
-        console.warn('⚠️ WARNING: No providers found for organization', currentOrganization.name);
+        console.warn(`⚠️ No providers found for ${currentOrganization.name}`);
     }
 
     providerSelect.innerHTML = '<option value="">Select Provider</option>' +
         orgProviders.map(p => {
             const name = `${p.firstName || ''} ${p.lastName || ''}`.trim() || p.name || 'Unknown';
-            return `<option value="${p.id}">${name} (${p.organizationId})</option>`;
+            return `<option value="${p.id}">${name}</option>`;
         }).join('');
 
     // Only show payers that have contracts with current organization
