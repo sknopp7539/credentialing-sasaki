@@ -4459,48 +4459,8 @@ function loadClaims() {
     if (storedClaims) {
         claims = JSON.parse(storedClaims);
     } else {
-        // Sample claims data
-        claims = [
-            {
-                id: 'CLM-2024-001',
-                claimId: 'CLM-2024-001',
-                providerId: 'PROV-001',
-                organizationId: 'ORG-001',
-                status: 'open',
-                reserveAmount: 50000,
-                settlementAmount: 0,
-                incidentDate: '2024-01-15',
-                description: 'Alleged surgical complication',
-                notes: 'Investigation ongoing',
-                createdAt: '2024-01-20'
-            },
-            {
-                id: 'CLM-2024-002',
-                claimId: 'CLM-2024-002',
-                providerId: 'PROV-002',
-                organizationId: 'ORG-001',
-                status: 'pending',
-                reserveAmount: 75000,
-                settlementAmount: 0,
-                incidentDate: '2024-02-10',
-                description: 'Medication error claim',
-                notes: 'Awaiting legal review',
-                createdAt: '2024-02-15'
-            },
-            {
-                id: 'CLM-2023-045',
-                claimId: 'CLM-2023-045',
-                providerId: 'PROV-004',
-                organizationId: 'ORG-003',
-                status: 'settled',
-                reserveAmount: 100000,
-                settlementAmount: 45000,
-                incidentDate: '2023-11-05',
-                description: 'Diagnostic delay claim',
-                notes: 'Settled out of court',
-                createdAt: '2023-11-10'
-            }
-        ];
+        // No sample claims data - production clean
+        claims = [];
         saveClaims();
     }
 }
