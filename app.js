@@ -170,7 +170,13 @@ function loadOrganizations() {
     }
 
     updateOrganizationDisplay();
-    // Dashboard will be updated after data is loaded in loadData()
+    // If no organizations exist, update dashboard to show zeros
+    if (organizations.length === 0) {
+        setTimeout(() => {
+            updateDashboard();
+        }, 50);
+    }
+    // Otherwise dashboard will be updated after data is loaded in loadData()
 }
 
 function saveOrganizations() {
@@ -179,8 +185,12 @@ function saveOrganizations() {
 
 function updateOrganizationDisplay() {
     const orgNameElement = document.getElementById('current-org-name');
-    if (orgNameElement && currentOrganization) {
-        orgNameElement.textContent = currentOrganization.name;
+    if (orgNameElement) {
+        if (currentOrganization) {
+            orgNameElement.textContent = currentOrganization.name;
+        } else {
+            orgNameElement.textContent = 'No Organization';
+        }
     }
 }
 
@@ -704,22 +714,27 @@ function updateDashboard() {
     console.log('📊 Updating dashboard...');
     console.log('   Current Organization:', currentOrganization ? `${currentOrganization.name} (ID: ${currentOrganization.id})` : 'None');
 
-    // Filter data by current organization
-    const orgProviders = currentOrganization ?
-        providers.filter(p => p.organizationId === currentOrganization.id) :
-        providers;
+    // If no organization is selected, show zeros
+    if (!currentOrganization) {
+        document.getElementById('total-providers').textContent = '0';
+        document.getElementById('total-enrollments').textContent = '0';
+        document.getElementById('pending-credentialing').textContent = '0';
+        document.getElementById('open-claims').textContent = '0';
+        renderExpirationsTable();
+        renderRecentClaimsWidget([]);
+        return;
+    }
 
-    const orgEnrollments = currentOrganization ?
-        enrollments.filter(e => {
-            const provider = providers.find(p => p.id === e.providerId);
-            return provider && provider.organizationId === currentOrganization.id;
-        }) :
-        enrollments;
+    // Filter data by current organization
+    const orgProviders = providers.filter(p => p.organizationId === currentOrganization.id);
+
+    const orgEnrollments = enrollments.filter(e => {
+        const provider = providers.find(p => p.id === e.providerId);
+        return provider && provider.organizationId === currentOrganization.id;
+    });
 
     // Filter claims by current organization
-    const orgClaims = currentOrganization ?
-        claims.filter(c => c.organizationId === currentOrganization.id) :
-        claims;
+    const orgClaims = claims.filter(c => c.organizationId === currentOrganization.id);
 
     const openClaims = orgClaims.filter(c => c.status === 'open').length;
 
