@@ -2477,7 +2477,7 @@ function getProviderLicenses() {
         const expirationDate = document.querySelector(`.license-expiration-date[data-id="${license.id}"]`)?.value || '';
         const status = document.querySelector(`.license-status[data-id="${license.id}"]`)?.value || 'active';
         const documentInput = document.querySelector(`.license-document[data-id="${license.id}"]`);
-        const document = documentInput?.files?.[0]?.name || null;
+        const documentName = documentInput?.files?.[0]?.name || null;
 
         return {
             id: license.id,
@@ -2487,7 +2487,7 @@ function getProviderLicenses() {
             issueDate,
             expiration: expirationDate,
             status,
-            documents: document ? [{ name: document, expires: expirationDate }] : []
+            documents: documentName ? [{ name: documentName, expires: expirationDate }] : []
         };
     });
 }
