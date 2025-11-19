@@ -3500,6 +3500,31 @@ function saveEnrollment(event) {
         }
     } else {
         enrollments.push(enrollmentData);
+        
+        // NEW: Update contract's assignedProviders and enrollments arrays
+        const contract = contracts.find(c => 
+            c.payerId === payerId && 
+            c.organizationId === currentOrganization.id
+        );
+        
+        if (contract) {
+            // Add provider to contract's assignedProviders if not already there
+            if (!contract.assignedProviders) {
+                contract.assignedProviders = [];
+            }
+            if (!contract.assignedProviders.includes(providerId)) {
+                contract.assignedProviders.push(providerId);
+            }
+            
+            // Add enrollment to contract's enrollments array
+            if (!contract.enrollments) {
+                contract.enrollments = [];
+            }
+            contract.enrollments.push(enrollmentData.id);
+            
+            saveContracts();
+            console.log('✅ Updated contract with provider assignment and enrollment');
+        }
     }
 
     saveEnrollments();
@@ -3524,10 +3549,43 @@ function editEnrollment(id) {
 
 function deleteEnrollment(id) {
     if (confirm('Are you sure you want to delete this enrollment?')) {
+        const enrollment = enrollments.find(e => e.id === id);
+        
+        if (enrollment) {
+            // Remove from contract's enrollments array
+            const contract = contracts.find(c => 
+                c.payerId === enrollment.payerId &&
+                c.organizationId === currentOrganization?.id
+            );
+            
+            if (contract && contract.enrollments) {
+                contract.enrollments = contract.enrollments.filter(eid => eid !== id);
+                saveContracts();
+                console.log('✅ Removed enrollment from contract');
+            }
+        }
+        
         enrollments = enrollments.filter(e => e.id !== id);
         saveEnrollments();
         renderEnrollments();
     }
+}
+
+// Helper function to get contracts for a provider
+function getProviderContracts(providerId) {
+    return contracts.filter(c => 
+        c.assignedProviders && 
+        c.assignedProviders.includes(providerId) &&
+        c.status !== 'Archived'
+    );
+}
+
+// Helper function to get enrollments for a contract
+function getContractEnrollments(contractId) {
+    const contract = contracts.find(c => c.id === contractId);
+    if (!contract || !contract.enrollments) return [];
+    
+    return enrollments.filter(e => contract.enrollments.includes(e.id));
 }
 
 // ===== LOCATIONS =====
@@ -3752,10 +3810,127 @@ window.onclick = function(event) {
 }
 
 // ===== PAYER CONTRACTS =====
+
+// Migration function to update old contract data to new schema
+function migrateContractData() {
+    let migrated = false;
+    
+    contracts = contracts.map(contract => {
+        const updated = { ...contract };
+        
+        // Rename documentFile → contractDocumentName (if exists)
+        if ('documentFile' in contract) {
+            updated.contractDocumentName = contract.documentFile;
+            delete updated.documentFile;
+            migrated = true;
+        }
+        
+        // Rename documentUrl → contractDocumentUrl (if exists)
+        if ('documentUrl' in contract && !('contractDocumentUrl' in contract)) {
+            updated.contractDocumentUrl = contract.documentUrl;
+            delete updated.documentUrl;
+            migrated = true;
+        }
+        
+        // Add missing fields with defaults
+        if (!updated.createdBy) {
+            updated.createdBy = 'system';
+            migrated = true;
+        }
+        
+        if (!updated.contractDocumentUploadDate && updated.contractDocumentName) {
+            updated.contractDocumentUploadDate = updated.createdAt || new Date().toISOString().split('T')[0];
+            migrated = true;
+        }
+        
+        if (!updated.assignedProviders) {
+            updated.assignedProviders = [];
+            migrated = true;
+        }
+        
+        if (!updated.enrollments) {
+            updated.enrollments = [];
+            migrated = true;
+        }
+        
+        return updated;
+    });
+    
+    if (migrated) {
+        saveContracts();
+        console.log('✅ Contract data migration complete');
+    }
+}
+
+// Validation helper functions
+function isValidEmail(email) {
+    if (!email) return true; // Optional field
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+}
+
+function isValidUrl(url) {
+    if (!url) return true; // Optional field
+    try {
+        new URL(url);
+        return url.startsWith('http://') || url.startsWith('https://');
+    } catch {
+        return false;
+    }
+}
+
+function validateDateRange(effectiveDate, expirationDate) {
+    if (!effectiveDate || !expirationDate) return true;
+    return new Date(expirationDate) > new Date(effectiveDate);
+}
+
+function validateContractForm(data) {
+    const errors = {};
+    
+    // Required fields
+    if (!data.payerName?.trim()) {
+        errors.payerName = 'Payer name is required';
+    }
+    
+    if (!data.contractName?.trim()) {
+        errors.contractName = 'Contract name is required';
+    }
+    
+    // Email validation
+    if (data.email && !isValidEmail(data.email)) {
+        errors.email = 'Please enter a valid email address';
+    }
+    
+    // URL validations
+    if (data.website && !isValidUrl(data.website)) {
+        errors.website = 'Please enter a valid URL (must start with http:// or https://)';
+    }
+    
+    if (data.feeScheduleUrl && !isValidUrl(data.feeScheduleUrl)) {
+        errors.feeScheduleUrl = 'Please enter a valid URL';
+    }
+    
+    if (data.contractDocumentUrl && !isValidUrl(data.contractDocumentUrl)) {
+        errors.contractDocumentUrl = 'Please enter a valid URL';
+    }
+    
+    // Date validation
+    if (!validateDateRange(data.effectiveDate, data.expirationDate)) {
+        errors.expirationDate = 'Expiration date must be after effective date';
+    }
+    
+    return {
+        isValid: Object.keys(errors).length === 0,
+        errors
+    };
+}
+
 function loadContracts() {
     const storedContracts = localStorage.getItem('pvContracts');
     if (storedContracts) {
         contracts = JSON.parse(storedContracts);
+        // Run migration to update old field names and add new fields
+        migrateContractData();
     } else {
         // Sample contract data
         contracts = [
@@ -3783,9 +3958,14 @@ function loadContracts() {
                 website: 'https://www.bcbs.com',
                 productLines: 'HMO, PPO, Medicare Advantage',
                 feeScheduleUrl: 'https://www.bcbs.com/fee-schedule',
-                documentUrl: 'https://docs.bcbs.com/contract-2024.pdf',
+                contractDocumentUrl: 'https://docs.bcbs.com/contract-2024.pdf',
+                contractDocumentName: 'BCBS_PPO_Agreement_2024.pdf',
+                contractDocumentUploadDate: '2024-01-15',
                 notes: 'Annual contract with standard terms',
-                createdAt: '2024-01-15'
+                createdAt: '2024-01-15',
+                createdBy: 'system',
+                assignedProviders: [],
+                enrollments: []
             },
             {
                 id: 'CONTRACT-002',
@@ -3811,9 +3991,14 @@ function loadContracts() {
                 website: 'https://www.aetna.com',
                 productLines: 'HMO, PPO',
                 feeScheduleUrl: 'https://www.aetna.com/fee-schedule',
-                documentUrl: null,
+                contractDocumentUrl: null,
+                contractDocumentName: null,
+                contractDocumentUploadDate: null,
                 notes: 'Standard HMO network contract',
-                createdAt: '2024-02-01'
+                createdAt: '2024-02-01',
+                createdBy: 'system',
+                assignedProviders: [],
+                enrollments: []
             },
             {
                 id: 'CONTRACT-003',
@@ -3838,9 +4023,14 @@ function loadContracts() {
                 website: 'https://www.medicare.gov',
                 productLines: 'Medicare Part A, Part B',
                 feeScheduleUrl: 'https://www.cms.gov/fee-schedule',
-                documentUrl: null,
+                contractDocumentUrl: null,
+                contractDocumentName: null,
+                contractDocumentUploadDate: null,
                 notes: 'Federal Medicare agreement',
-                createdAt: '2024-01-01'
+                createdAt: '2024-01-01',
+                createdBy: 'system',
+                assignedProviders: [],
+                enrollments: []
             },
             {
                 id: 'CONTRACT-004',
@@ -3866,9 +4056,14 @@ function loadContracts() {
                 website: 'https://www.bcbstx.com',
                 productLines: 'PPO, Medicare Advantage',
                 feeScheduleUrl: 'https://www.bcbstx.com/fee-schedule',
-                documentUrl: null,
+                contractDocumentUrl: null,
+                contractDocumentName: null,
+                contractDocumentUploadDate: null,
                 notes: 'Texas regional contract for Knopp Medical',
-                createdAt: '2024-03-01'
+                createdAt: '2024-03-01',
+                createdBy: 'system',
+                assignedProviders: [],
+                enrollments: []
             },
             {
                 id: 'CONTRACT-005',
@@ -3893,9 +4088,14 @@ function loadContracts() {
                 website: 'https://www.medicare.gov',
                 productLines: 'Medicare Part A, Part B',
                 feeScheduleUrl: 'https://www.cms.gov/fee-schedule',
-                documentUrl: null,
+                contractDocumentUrl: null,
+                contractDocumentName: null,
+                contractDocumentUploadDate: null,
                 notes: 'Federal Medicare agreement for Knopp Medical',
-                createdAt: '2024-03-01'
+                createdAt: '2024-03-01',
+                createdBy: 'system',
+                assignedProviders: [],
+                enrollments: []
             },
             {
                 id: 'CONTRACT-006',
@@ -3921,9 +4121,14 @@ function loadContracts() {
                 website: 'https://www.blueshieldca.com',
                 productLines: 'PPO, HMO',
                 feeScheduleUrl: 'https://www.blueshieldca.com/fee-schedule',
-                documentUrl: null,
+                contractDocumentUrl: null,
+                contractDocumentName: null,
+                contractDocumentUploadDate: null,
                 notes: 'California regional contract for Coastal Medical',
-                createdAt: '2024-02-01'
+                createdAt: '2024-02-01',
+                createdBy: 'system',
+                assignedProviders: [],
+                enrollments: []
             }
         ];
         saveContracts();
@@ -4017,6 +4222,25 @@ function getContractIdentifiers() {
     return identifiers;
 }
 
+// Add event listener for file input to show selected filename
+document.addEventListener('DOMContentLoaded', () => {
+    const fileInput = document.getElementById('contract-document');
+    if (fileInput) {
+        fileInput.addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            const filenameDisplay = document.getElementById('contract-filename-display');
+            const filenameText = document.getElementById('contract-filename-text');
+            
+            if (file) {
+                filenameText.textContent = `Selected: ${file.name}`;
+                filenameDisplay.style.display = 'block';
+            } else {
+                filenameDisplay.style.display = 'none';
+            }
+        });
+    }
+});
+
 // Contract Modal Management
 function showContractModal(payerId = null) {
     const modal = document.getElementById('payer-contract-modal');
@@ -4025,6 +4249,12 @@ function showContractModal(payerId = null) {
     form.reset();
     document.getElementById('contract-edit-id').value = '';
     document.getElementById('contract-modal-title').textContent = 'Add Payer Contract';
+    
+    // Reset filename display
+    const filenameDisplay = document.getElementById('contract-filename-display');
+    if (filenameDisplay) {
+        filenameDisplay.style.display = 'none';
+    }
 
     // Reset identifiers
     contractIdentifiers = [];
@@ -4056,69 +4286,106 @@ function saveContract(event) {
     event.preventDefault();
 
     console.log('💼 ========== SAVE CONTRACT CALLED ==========');
-    console.log('💼 Current Organization at time of save:', currentOrganization ? `${currentOrganization.name} (ID: ${currentOrganization.id})` : 'NULL - THIS IS A PROBLEM!');
+    console.log('💼 Current Organization:', currentOrganization ? `${currentOrganization.name} (ID: ${currentOrganization.id})` : 'NULL');
 
     const id = document.getElementById('contract-edit-id').value;
     const identifiers = getContractIdentifiers();
 
+    // Collect form data for validation
+    const formData = {
+        payerName: document.getElementById('contract-payer-name').value,
+        contractName: document.getElementById('contract-name').value,
+        email: document.getElementById('contract-email').value,
+        website: document.getElementById('contract-website').value,
+        feeScheduleUrl: document.getElementById('contract-fee-schedule-url').value,
+        contractDocumentUrl: document.getElementById('contract-document-url').value,
+        effectiveDate: document.getElementById('contract-effective-date').value,
+        expirationDate: document.getElementById('contract-expiration-date').value
+    };
+
+    // Validate form
+    const validation = validateContractForm(formData);
+    if (!validation.isValid) {
+        const firstError = Object.values(validation.errors)[0];
+        alert(firstError);
+        return;
+    }
+
     // Handle file upload
     const fileInput = document.getElementById('contract-document');
-    let documentFile = null;
+    let contractDocumentName = null;
+    let contractDocumentUploadDate = null;
+    
     if (fileInput.files && fileInput.files[0]) {
         const file = fileInput.files[0];
+        
         // Validate file size (10MB max)
         if (file.size > 10 * 1024 * 1024) {
             alert('File size must be less than 10MB');
             return;
         }
-        // In a real application, you would upload this to a server
-        // For demo purposes, we'll just store the filename
-        documentFile = file.name;
+        
+        // Validate file type
+        const allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'];
+        if (!allowedTypes.includes(file.type)) {
+            alert('Only PDF, JPG, and PNG files are allowed');
+            return;
+        }
+        
+        contractDocumentName = file.name;
+        contractDocumentUploadDate = new Date().toISOString();
     }
 
     const assignedOrgId = currentOrganization ? currentOrganization.id : null;
-    console.log('💼 Assigning organizationId:', assignedOrgId);
+    const now = new Date().toISOString();
 
     const contractData = {
         id: id || `CONTRACT-${String(contracts.length + 1).padStart(3, '0')}`,
         organizationId: assignedOrgId,
         payerId: document.getElementById('contract-payer-id').value || null,
-        payerName: document.getElementById('contract-payer-name').value,
-        contractName: document.getElementById('contract-name').value,
+        payerName: formData.payerName,
+        contractName: formData.contractName,
         identifiers: identifiers,
         contactName: document.getElementById('contract-contact-name').value,
-        email: document.getElementById('contract-email').value,
+        email: formData.email,
         phone: document.getElementById('contract-phone').value,
         fax: document.getElementById('contract-fax').value,
         streetAddress: document.getElementById('contract-address').value,
         city: document.getElementById('contract-city').value,
         state: document.getElementById('contract-state').value,
         zipCode: document.getElementById('contract-zip').value,
-        effectiveDate: document.getElementById('contract-effective-date').value,
-        expirationDate: document.getElementById('contract-expiration-date').value,
+        effectiveDate: formData.effectiveDate,
+        expirationDate: formData.expirationDate,
         status: document.getElementById('contract-status').value,
-        website: document.getElementById('contract-website').value,
+        website: formData.website,
         productLines: document.getElementById('contract-product-lines').value,
-        feeScheduleUrl: document.getElementById('contract-fee-schedule-url').value,
-        documentFile: documentFile,
-        documentUrl: document.getElementById('contract-document-url').value,
+        feeScheduleUrl: formData.feeScheduleUrl,
+        contractDocumentName: contractDocumentName,
+        contractDocumentUrl: formData.contractDocumentUrl,
+        contractDocumentUploadDate: contractDocumentUploadDate,
         notes: document.getElementById('contract-notes').value,
-        createdAt: id ? contracts.find(c => c.id === id)?.createdAt : new Date().toISOString().split('T')[0],
-        updatedAt: new Date().toISOString().split('T')[0]
+        createdBy: currentUser?.username || currentUser?.email || 'system',
+        createdAt: id ? contracts.find(c => c.id === id)?.createdAt : now.split('T')[0],
+        updatedAt: now.split('T')[0],
+        assignedProviders: id ? contracts.find(c => c.id === id)?.assignedProviders || [] : [],
+        enrollments: id ? contracts.find(c => c.id === id)?.enrollments || [] : []
     };
 
     if (id) {
         const index = contracts.findIndex(c => c.id === id);
         if (index !== -1) {
-            // Preserve organizationId when editing
             const existingContract = contracts[index];
+            // Preserve critical fields when editing
             contractData.organizationId = existingContract.organizationId || contractData.organizationId;
+            contractData.assignedProviders = existingContract.assignedProviders || [];
+            contractData.enrollments = existingContract.enrollments || [];
+            contractData.createdBy = existingContract.createdBy || contractData.createdBy;
             contracts[index] = contractData;
-            console.log('💼 Updated existing contract at index', index);
+            console.log('💼 Updated existing contract');
         }
     } else {
         contracts.push(contractData);
-        console.log('💼 Added new contract to array');
+        console.log('💼 Added new contract');
     }
 
     console.log('💼 Final contract data:', {
