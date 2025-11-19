@@ -2469,15 +2469,31 @@ function removeProviderLicense(id) {
     }
 }
 
-function getProviderLicenses() {
-    return providerLicenses.map(license => {
+async function getProviderLicenses() {
+    const licensePromises = providerLicenses.map(async license => {
         const state = document.querySelector(`.license-state[data-id="${license.id}"]`)?.value || '';
         const licenseNumber = document.querySelector(`.license-number[data-id="${license.id}"]`)?.value || '';
         const issueDate = document.querySelector(`.license-issue-date[data-id="${license.id}"]`)?.value || '';
         const expirationDate = document.querySelector(`.license-expiration-date[data-id="${license.id}"]`)?.value || '';
         const status = document.querySelector(`.license-status[data-id="${license.id}"]`)?.value || 'active';
         const documentInput = document.querySelector(`.license-document[data-id="${license.id}"]`);
-        const documentName = documentInput?.files?.[0]?.name || null;
+        const file = documentInput?.files?.[0];
+        
+        let documentData = null;
+        if (file) {
+            // Convert file to base64 data URL
+            const dataUrl = await new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.readAsDataURL(file);
+            });
+            documentData = {
+                name: file.name,
+                url: dataUrl,
+                expires: expirationDate,
+                uploadDate: new Date().toISOString()
+            };
+        }
 
         return {
             id: license.id,
@@ -2487,9 +2503,11 @@ function getProviderLicenses() {
             issueDate,
             expiration: expirationDate,
             status,
-            documents: documentName ? [{ name: documentName, expires: expirationDate }] : []
+            documents: documentData ? [documentData] : []
         };
     });
+    
+    return Promise.all(licensePromises);
 }
 
 // Provider Location Management
@@ -2935,7 +2953,41 @@ function closeProviderModal() {
     document.getElementById('provider-modal').classList.remove('active');
 }
 
-function saveProvider(event) {
+function viewDocument(url, filename) {
+    // Open document in new tab
+    const newWindow = window.open();
+    if (newWindow) {
+        // For PDFs and images, display directly
+        if (filename.toLowerCase().endsWith('.pdf')) {
+            newWindow.document.write(`
+                <html>
+                    <head><title>${filename}</title></head>
+                    <body style="margin: 0; padding: 0;">
+                        <embed src="${url}" type="application/pdf" width="100%" height="100%" />
+                    </body>
+                </html>
+            `);
+        } else if (filename.match(/\.(jpg|jpeg|png|gif)$/i)) {
+            newWindow.document.write(`
+                <html>
+                    <head><title>${filename}</title></head>
+                    <body style="margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; background: #000;">
+                        <img src="${url}" style="max-width: 100%; max-height: 100%; object-fit: contain;" />
+                    </body>
+                </html>
+            `);
+        } else {
+            // For other file types, trigger download
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            link.click();
+            newWindow.close();
+        }
+    }
+}
+
+async function saveProvider(event) {
     event.preventDefault();
     console.log('💾 ========== SAVE PROVIDER CALLED ==========');
     console.log('💾 Current Organization at time of save:', currentOrganization ? `${currentOrganization.name} (ID: ${currentOrganization.id})` : 'NULL - THIS IS A PROBLEM!');
@@ -2946,7 +2998,7 @@ function saveProvider(event) {
         const lastName = document.getElementById('provider-last-name').value;
         console.log('💾 Basic info collected:', firstName, lastName);
 
-        const licenses = getProviderLicenses();
+        const licenses = await getProviderLicenses();
         console.log('Licenses:', licenses);
 
         const practiceLocations = getProviderLocations();
@@ -3123,7 +3175,21 @@ function editProvider(id) {
                         <div class="form-group">
                             <label style="font-size: 0.875rem; font-weight: 500; color: #64748b;">Upload License Document</label>
                             <input type="file" class="license-document" data-id="${licenseId}" accept=".pdf,.jpg,.jpeg,.png" style="padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 0.875rem;" />
-                            ${license.documents && license.documents.length > 0 ? `<p style="font-size: 0.75rem; color: #64748b; margin-top: 0.25rem;">Current: ${license.documents[0].name}</p>` : ''}
+                            ${license.documents && license.documents.length > 0 ? `
+                                <div style="margin-top: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                                    <p style="font-size: 0.75rem; color: #64748b; margin: 0;">Current: ${license.documents[0].name}</p>
+                                    ${license.documents[0].url ? `
+                                        <button type="button" onclick="viewDocument('${license.documents[0].url}', '${license.documents[0].name}')" 
+                                            style="padding: 0.25rem 0.5rem; font-size: 0.75rem; color: #2563eb; background: #eff6ff; border: 1px solid #2563eb; border-radius: 4px; cursor: pointer; font-weight: 500;">
+                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 0.25rem;">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                                <circle cx="12" cy="12" r="3"></circle>
+                                            </svg>
+                                            View
+                                        </button>
+                                    ` : ''}
+                                </div>
+                            ` : ''}
                         </div>
                     </div>
                 </div>
